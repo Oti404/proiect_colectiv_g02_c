@@ -13,13 +13,13 @@ _TBD_. Candidat principal momentan: o aplicație pentru proprietarii de câini, 
 | Membru | Rol |
 |---|---|
 | Otniel | Manager de proiect · Frontend |
-| Tibi | _TBD_ |
+| Tibi | UI/UX · Frontend |
 | Gabriel F. | Backend |
 | Gabriel G. | Backend |
 | Sebastian | Backend |
-| Cătălin | _TBD_ |
-| Dan | _TBD_ |
-| Vlad | _TBD_ |
+| Cătălin | DevOps · Bază de date |
+| Dan | QA · Documentație · Prezentare |
+| Vlad | Frontend |
 
 ## 🛠️ Tehnologii
 
