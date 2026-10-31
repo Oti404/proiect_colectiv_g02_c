@@ -12,7 +12,7 @@ _TBD_. Candidat principal momentan: o aplicație pentru proprietarii de câini, 
 
 | Membru | Rol |
 |---|---|
-| Otniel | Manager de proiect · Frontend |
+| Otniel | Manager de proiect |
 | Tibi | UI/UX · Frontend |
 | Gabriel F. | Backend |
 | Gabriel G. | Backend |
@@ -25,9 +25,12 @@ _TBD_. Candidat principal momentan: o aplicație pentru proprietarii de câini, 
 
 | Componentă | Tehnologie |
 |---|---|
-| Frontend | Angular |
-| Backend | _TBD_ |
-| Bază de date | _TBD_ |
+| Frontend | Angular 22 |
+| Backend | Node.js 24 LTS · Express 5 |
+| ORM | Prisma 7 |
+| Bază de date | PostgreSQL |
+| Autentificare | JWT · bcrypt |
+| Containerizare | Docker |
 
 ## 📅 Calendar evaluare
 
