@@ -5,10 +5,10 @@
 
 | # | Nivel | Misiune | Responsabil | Termen | Status | Puncte |
 |---|---|---|---|---|---|---|
-| 1 | Nivel 1 | | | | ⬜ De făcut | |
-| 2 | Nivel 1 | | | | ⬜ De făcut | |
-| 3 | Nivel 1 | | | | ⬜ De făcut | |
-| 4 | Nivel 1 | | | | ⬜ De făcut | |
+| 1 | Nivel 1 | | | | ✅ Trimis | |
+| 2 | Nivel 1 | | | | ✅ Trimis | |
+| 3 | Nivel 1 | | | | ✅ Trimis | |
+| 4 | Nivel 1 | | | | ✅ Trimis | |
 | 5 | Nivel 2 | | | | ⬜ De făcut | |
 | 6 | Nivel 3 | | | | ⬜ De făcut | |
 | 7 | Nivel 4 | | | | ⬜ De făcut | |
