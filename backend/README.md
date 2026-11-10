@@ -46,6 +46,8 @@ API-ul pornește la `http://localhost:3000`. Verificare: `http://localhost:3000/
 | `npm start` | Rulează varianta compilată (`node dist/app.js`) |
 | `npm run prisma:generate` | Generează clientul Prisma după modificări în `schema.prisma` |
 | `npx prisma migrate dev --name <nume>` | Creează o migrare și aplică modificările în baza de date |
+| `npx prisma db seed` | Umple baza cu date demo (se poate rula de mai multe ori) |
+| `npx prisma generate` | Regenerează clientul Prisma (rulați-o după `git pull`, dacă s-a schimbat schema) |
 | `npx prisma studio` | Deschide în browser o interfață pentru datele din baza de date |
 
 ## Structură propusă
@@ -53,14 +55,16 @@ API-ul pornește la `http://localhost:3000`. Verificare: `http://localhost:3000/
 ```
 backend/
 ├── prisma/
-│   └── schema.prisma   ← modelul bazei de date
-├── prisma7.config.ts   ← configurarea Prisma (conexiunea la baza de date)
+│   ├── schema.prisma   ← modelul bazei de date
+│   ├── migrations/     ← migrările (se urcă în repo)
+│   └── seed.ts         ← datele demo (rase, utilizatori, câini)
+├── prisma.config.ts    ← configurarea Prisma (conexiunea la baza de date)
 └── src/
     ├── routes/         ← definirea endpoint-urilor
     ├── controllers/    ← primesc cererile și trimit răspunsurile
     ├── services/       ← logica aplicației
     ├── middleware/     ← autentificare, validare, erori
-    ├── lib/            ← clientul Prisma și alte utilitare
+    ├── lib/            ← clientul Prisma (`prisma.ts`) și alte utilitare
     ├── generated/      ← clientul Prisma generat (nu se urcă în repo)
     └── app.ts          ← punctul de pornire
 ```
@@ -74,4 +78,5 @@ Imaginea se construiește din `Dockerfile` în două etape: prima compilează Ty
 - Importurile între fișierele proprii se scriu cu extensia **`.js`**, chiar dacă fișierul e `.ts` (ex. `import { prisma } from "./lib/prisma.js"`). Așa cere `NodeNext`.
 - În `tsconfig.json` trebuie să rămână `"types": ["node"]`. Fără el, TypeScript 7 nu recunoaște `process` și `npm run build` dă eroare.
 - Secretele (`JWT_SECRET`, parola bazei de date) stau în `.env`, care **nu** se urcă în repo. În repo se urcă doar `.env.example`.
+- Clientul Prisma se importă din `src/lib/prisma.ts`: `import { prisma } from "./lib/prisma.js"`.
 - Pentru Docker, baza de date e disponibilă local pe portul **5433**, nu 5432.
