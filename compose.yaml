@@ -18,17 +18,33 @@ services:
       timeout: 5s
       retries: 10
 
+  # Rulează o singură dată la pornire: aplică migrările și umple baza cu date demo.
+  # Folosește etapa "build" a imaginii, fiindcă are Prisma CLI și tsx.
+  migrate:
+    build:
+      context: ./backend
+      target: build
+    restart: "no"
+    mem_limit: 256m
+    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+
   backend:
     build: ./backend
     restart: unless-stopped
     mem_limit: 256m
     environment:
       PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   frontend:
     build: ./frontend
