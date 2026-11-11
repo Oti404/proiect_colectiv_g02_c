@@ -189,7 +189,11 @@
                 <div class="row" style="gap: 0.65rem; align-items: center;">
                   <div class="mini-dog-initial">
                     @if (dog.photoUrl) {
-                      <img [src]="dog.photoUrl" [alt]="dog.name" class="dog-avatar-img" />
+                      <img
+                        [src]="dog.photoUrl"
+                        [alt]="dog.name"
+                        style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:8px;display:block;flex-shrink:0;"
+                      />
                     } @else {
                       {{ dog.name.charAt(0) }}
                     }

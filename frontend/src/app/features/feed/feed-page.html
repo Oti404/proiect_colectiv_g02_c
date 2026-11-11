@@ -116,7 +116,11 @@
                   @if (item.dog; as taggedDog) {
                     <span class="badge badge-info tagged-dog-badge">
                       @if (taggedDog.photoUrl) {
-                        <img [src]="taggedDog.photoUrl" [alt]="taggedDog.name" class="tagged-dog-thumb" />
+                        <img
+                          [src]="taggedDog.photoUrl"
+                          [alt]="taggedDog.name"
+                          style="width:1.3rem;height:1.3rem;border-radius:50%;object-fit:cover;display:inline-block;vertical-align:middle;flex-shrink:0;"
+                        />
                       }
                       with
                       <a [routerLink]="['/dogs', taggedDog.id]" style="color: inherit; text-decoration: underline;">

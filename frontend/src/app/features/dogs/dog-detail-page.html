@@ -12,7 +12,11 @@
         <div class="row dog-title-group" style="gap: 1rem;">
           <div class="dog-detail-avatar">
             @if (info.dog.photoUrl) {
-              <img [src]="info.dog.photoUrl" [alt]="info.dog.name" class="dog-avatar-img" />
+              <img
+                [src]="info.dog.photoUrl"
+                [alt]="info.dog.name"
+                style="width:4rem;height:4rem;object-fit:cover;border-radius:12px;display:block;flex-shrink:0;"
+              />
             } @else {
               <span class="avatar-initial">{{ info.dog.name.charAt(0) }}</span>
             }

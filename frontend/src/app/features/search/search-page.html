@@ -137,7 +137,11 @@
             <div class="row dog-identity" style="gap: 0.75rem;">
               <div class="dog-avatar-initial">
                 @if (item.dog.photoUrl) {
-                  <img [src]="item.dog.photoUrl" [alt]="item.dog.name" class="dog-avatar-img" />
+                  <img
+                    [src]="item.dog.photoUrl"
+                    [alt]="item.dog.name"
+                    style="width:2.85rem;height:2.85rem;object-fit:cover;border-radius:8px;display:block;flex-shrink:0;"
+                  />
                 } @else {
                   {{ item.dog.name.charAt(0) }}
                 }
