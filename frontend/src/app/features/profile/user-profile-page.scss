@@ -1,0 +1,141 @@
+.user-profile-wrapper {
+  gap: 1.25rem;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.navigation-row {
+  margin-bottom: 0.25rem;
+}
+
+.user-hero-card {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-surface-subtle) 100%);
+}
+
+.user-large-avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-tag {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.user-display-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.user-location-meta {
+  font-size: 0.92rem;
+}
+
+.user-bio-card {
+  margin-top: 0.5rem;
+  padding: 0.9rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+}
+
+.user-dogs-section {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.user-dogs-grid {
+  gap: 1rem;
+}
+
+.dog-subcard {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.mini-dog-avatar {
+  font-size: 1.4rem;
+}
+
+.dog-card-name {
+  font-size: 1.05rem;
+}
+
+.chips-compact {
+  gap: 0.35rem;
+
+  .chip {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.blocked-state-card {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  align-items: center;
+
+  .blocked-icon {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .user-hero-top {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .profile-action-buttons {
+    width: 100%;
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

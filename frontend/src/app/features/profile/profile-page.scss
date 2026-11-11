@@ -1,0 +1,146 @@
+.my-profile-wrapper {
+  gap: 1.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.profile-edit-card, .my-dogs-section, .blocked-section {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+}
+
+.profile-main-avatar {
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badge-tag {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.location-meta {
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.session-info-bar {
+  padding: 0.6rem 0.85rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.profile-form {
+  margin-top: 0.5rem;
+}
+
+.form-submit-row {
+  margin-top: 0.5rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Dog Editor Form */
+.dog-editor-form {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.my-dogs-grid {
+  gap: 1.15rem;
+}
+
+.my-dog-card {
+  padding: 1.15rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.mini-dog-avatar {
+  font-size: 1.4rem;
+}
+
+.dog-card-name {
+  font-size: 1.1rem;
+}
+
+.chips-compact {
+  gap: 0.35rem;
+
+  .chip {
+    font-size: 0.74rem;
+    padding: 0.15rem 0.45rem;
+  }
+}
+
+.my-dog-actions {
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.text-danger {
+  color: var(--color-danger);
+
+  &:hover {
+    background: var(--color-danger-bg);
+  }
+}
+
+.empty-state-mini {
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* Blocked list */
+.blocked-list {
+  gap: 0.5rem;
+}
+
+.blocked-item {
+  padding: 0.65rem 0.85rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.blocked-name {
+  font-size: 0.92rem;
+  font-weight: 500;
+}
