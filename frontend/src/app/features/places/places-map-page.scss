@@ -1,0 +1,161 @@
+.places-page-wrapper {
+  gap: 1.5rem;
+}
+
+.places-header-card {
+  padding: 1.5rem 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.badge-tag {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 0.92rem;
+  margin-top: 0.25rem;
+}
+
+.directory-badge {
+  font-size: 0.76rem;
+}
+
+.filter-controls-row {
+  margin-top: 0.75rem;
+  gap: 1rem;
+}
+
+.category-chips-row {
+  gap: 0.35rem;
+  overflow-x: auto;
+}
+
+.places-search-field {
+  min-width: 250px;
+
+  input {
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Places Grid */
+.places-main-grid {
+  gap: 1.25rem;
+}
+
+.places-list-panel, .place-details-panel {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.places-items-list {
+  gap: 0.5rem;
+  max-height: 520px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.place-item-card {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  transition: all var(--transition-fast);
+  gap: 0.25rem;
+
+  &:hover {
+    background: var(--color-surface-subtle);
+    border-color: #ded6cc;
+  }
+
+  &.selected-place {
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.place-name {
+  font-size: 0.98rem;
+  color: var(--color-text-main);
+}
+
+.place-type-badge {
+  font-size: 0.72rem;
+}
+
+/* Details Panel */
+.place-detail-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.place-detail-neighborhood {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.badge-source {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  font-size: 0.72rem;
+}
+
+.place-info-box {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+
+  .info-row {
+    font-size: 0.92rem;
+    display: flex;
+    gap: 0.45rem;
+  }
+}
+
+.place-website-link {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.place-action-buttons {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@media (max-width: 768px) {
+  .header-top-row, .filter-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .places-search-field {
+    width: 100%;
+  }
+}
