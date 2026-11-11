@@ -1,0 +1,316 @@
+<section class="container stack">
+  <header class="card stack">
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <div>
+        <h1>Dog Care &amp; Health Tracker</h1>
+        <p class="muted">
+          Personalized daily care tips, vaccination &amp; vet records, reminders, and weight tracking.
+        </p>
+      </div>
+      @if (myDogs().length > 0) {
+        <div class="field" style="min-width: 220px;">
+          <label for="care-dog-select">Active Dog</label>
+          <select
+            id="care-dog-select"
+            [value]="selectedDogId()"
+            (change)="onDogSelectionChange($event)"
+          >
+            @for (dog of myDogs(); track dog.id) {
+              <option [value]="dog.id">{{ dog.name }}</option>
+            }
+          </select>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (myDogs().length === 0) {
+    <section class="card stack">
+      <h2>No Dogs Registered Yet</h2>
+      <p class="muted">
+        Add one of your dogs on your profile to unlock personalized breed tips, health records,
+        reminders, and weight history tracking.
+      </p>
+      <div>
+        <a class="btn btn-primary" routerLink="/profile">Go to Profile to Add a Dog</a>
+      </div>
+    </section>
+  } @else if (selectedDog(); as dog) {
+    @if (dailyTip(); as tip) {
+      <section class="card stack">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h2>Daily Care Advice for {{ dog.name }}</h2>
+          <span class="badge badge-info">{{ tip.weatherLabel }}</span>
+        </div>
+
+        <div class="row">
+          @if (selectedBreed(); as breed) {
+            <span class="badge">{{ breed.name }}</span>
+            <span class="badge">Energy: {{ breed.energyLevel }}/5</span>
+            <span class="badge">Size: {{ breed.size }}</span>
+            @if (breed.heatSensitive) {
+              <span class="badge badge-warn">Heat Sensitive</span>
+            }
+            @if (breed.breathingIssues) {
+              <span class="badge badge-danger">Breathing Precautions</span>
+            }
+          }
+          <span class="badge">Age: {{ selectedDogAgeLabel() }}</span>
+        </div>
+
+        <div [class]="tip.isWarning ? 'alert-error stack' : 'stack'">
+          <strong>{{ tip.headline }}</strong>
+          <p>{{ tip.advice }}</p>
+          @if (selectedBreed(); as breed) {
+            <p class="muted"><strong>Breed guidance:</strong> {{ breed.careTips }}</p>
+          }
+        </div>
+
+        <p class="muted" style="font-size: 0.85rem;">
+          <strong>Medical disclaimer:</strong> {{ medicalDisclaimer }}
+        </p>
+      </section>
+    }
+
+    <div class="grid-2">
+      <section class="card stack">
+        <h2>Upcoming &amp; Overdue Reminders</h2>
+        @if (reminders().length === 0) {
+          <p class="muted">No scheduled care due dates for {{ dog.name }}.</p>
+        } @else {
+          <ul class="stack" style="list-style: none;">
+            @for (reminder of reminders(); track reminder.record.id) {
+              <li class="card stack" style="padding: 0.75rem;">
+                <div class="row" style="justify-content: space-between; align-items: center;">
+                  <strong>{{ reminder.record.title }}</strong>
+                  <span [class]="getReminderBadgeClass(reminder.status)">
+                    {{ formatReminderStatusLabel(reminder) }}
+                  </span>
+                </div>
+                <div class="row muted" style="font-size: 0.88rem;">
+                  <span>{{ formatRecordType(reminder.record.type) }}</span>
+                  <span>Due: {{ reminder.record.nextDueDate }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="card stack">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h2>Weight History</h2>
+          @if (weightChart().latestWeight !== null) {
+            <span class="badge badge-success">Latest: {{ weightChart().latestWeight }} kg</span>
+          }
+        </div>
+
+        @if (weightChart().points.length === 0) {
+          <p class="muted">
+            No weight records yet for {{ dog.name }}. Add a "Weight" record below to start plotting.
+          </p>
+        } @else {
+          <svg
+            viewBox="0 0 360 150"
+            width="100%"
+            height="160"
+            role="img"
+            aria-label="Dog weight history chart"
+            style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;"
+          >
+            <line x1="28" y1="22" x2="28" y2="118" stroke="#d1d5db" stroke-width="1" />
+            <line x1="28" y1="118" x2="334" y2="118" stroke="#d1d5db" stroke-width="1" />
+
+            @if (weightChart().points.length > 1) {
+              <polyline
+                fill="none"
+                stroke="#2563eb"
+                stroke-width="2.5"
+                [attr.points]="weightChart().polylinePoints"
+              />
+            }
+
+            @for (pt of weightChart().points; track pt.point.date + '-' + $index) {
+              <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4.5" fill="#1d4ed8" />
+              <text
+                [attr.x]="pt.x"
+                [attr.y]="pt.y - 8"
+                text-anchor="middle"
+                font-size="10"
+                fill="#111827"
+              >
+                {{ pt.point.weightKg }} kg
+              </text>
+              <text
+                [attr.x]="pt.x"
+                y="134"
+                text-anchor="middle"
+                font-size="9"
+                fill="#6b7280"
+              >
+                {{ pt.point.date }}
+              </text>
+            }
+          </svg>
+          <p class="muted" style="font-size: 0.85rem;">
+            Range: {{ weightChart().minWeight }} kg – {{ weightChart().maxWeight }} kg
+            ({{ weightChart().points.length }} measurement{{
+              weightChart().points.length === 1 ? '' : 's'
+            }})
+          </p>
+        }
+      </section>
+    </div>
+
+    <div class="grid-2">
+      <section class="card stack">
+        <h2>Add Health Record for {{ dog.name }}</h2>
+
+        @if (errorMessage(); as error) {
+          <div class="alert-error">{{ error }}</div>
+        }
+        @if (successMessage(); as success) {
+          <div class="alert-success">{{ success }}</div>
+        }
+
+        <form class="stack" [formGroup]="recordForm" (ngSubmit)="onAddRecord()">
+          <div class="field">
+            <label for="hr-type">Record Type</label>
+            <select id="hr-type" formControlName="type">
+              <option value="VACCINE">Vaccine</option>
+              <option value="DEWORMING">Deworming</option>
+              <option value="VET_VISIT">Vet Visit</option>
+              <option value="WEIGHT">Weight Measurement</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="hr-title">Title</label>
+            <input
+              id="hr-title"
+              type="text"
+              formControlName="title"
+              placeholder="e.g. Rabies booster or Monthly weigh-in"
+            />
+            @if (recordForm.controls.title.touched && recordForm.controls.title.invalid) {
+              <span class="error-text">Title is required.</span>
+            }
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="hr-date">Date</label>
+              <input id="hr-date" type="date" formControlName="date" />
+            </div>
+
+            <div class="field">
+              <label for="hr-next-due">Next Due Date (optional)</label>
+              <input id="hr-next-due" type="date" formControlName="nextDueDate" />
+            </div>
+          </div>
+
+          @if (recordForm.controls.type.value === 'WEIGHT') {
+            <div class="field">
+              <label for="hr-weight">Weight (kg)</label>
+              <input
+                id="hr-weight"
+                type="number"
+                step="0.1"
+                min="0.1"
+                formControlName="weightKg"
+                placeholder="e.g. 24.5"
+              />
+            </div>
+          }
+
+          <div class="field">
+            <label for="hr-notes">Notes (optional)</label>
+            <textarea
+              id="hr-notes"
+              rows="2"
+              formControlName="notes"
+              placeholder="Clinic name, dosage, observations..."
+            ></textarea>
+          </div>
+
+          <div>
+            <button type="submit" class="btn btn-primary">Save Health Record</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card stack">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h2>Health Records</h2>
+          <span class="muted">{{ filteredRecords().length }} shown</span>
+        </div>
+
+        <div class="row">
+          @for (opt of filterOptions; track opt.value) {
+            <button
+              type="button"
+              [class]="typeFilter() === opt.value ? 'btn btn-primary btn-sm' : 'btn btn-sm'"
+              (click)="setTypeFilter(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+
+        @if (filteredRecords().length === 0) {
+          <p class="muted">No health records match this filter for {{ dog.name }}.</p>
+        } @else {
+          <ul class="stack" style="list-style: none;">
+            @for (record of filteredRecords(); track record.id) {
+              <li class="card stack" style="padding: 0.75rem;">
+                <div class="row" style="justify-content: space-between; align-items: center;">
+                  <div class="row" style="align-items: center;">
+                    <span class="badge badge-info">{{ formatRecordType(record.type) }}</span>
+                    <strong>{{ record.title }}</strong>
+                  </div>
+
+                  @if (confirmDeleteId() === record.id) {
+                    <div class="row">
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        (click)="confirmDelete(record.id)"
+                      >
+                        Confirm Delete
+                      </button>
+                      <button type="button" class="btn btn-sm" (click)="cancelDelete()">
+                        Cancel
+                      </button>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      (click)="requestDelete(record.id)"
+                    >
+                      Delete
+                    </button>
+                  }
+                </div>
+
+                <div class="row muted" style="font-size: 0.88rem;">
+                  <span>Date: {{ record.date }}</span>
+                  @if (record.nextDueDate) {
+                    <span>Next due: {{ record.nextDueDate }}</span>
+                  }
+                  @if (record.weightKg !== null) {
+                    <span>Weight: {{ record.weightKg }} kg</span>
+                  }
+                </div>
+
+                @if (record.notes) {
+                  <p class="muted">{{ record.notes }}</p>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</section>

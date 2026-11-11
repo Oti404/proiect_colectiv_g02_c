@@ -1,0 +1,58 @@
+<section class="stack" style="max-width: 720px; margin: 1.5rem auto;">
+  <div class="card stack">
+    <div class="row" style="justify-content: space-between;">
+      <h1 style="margin: 0;">DogApp — Demo Authentication</h1>
+      <span class="badge badge-warn">Simulated Session</span>
+    </div>
+    <p class="muted" style="margin: 0;">
+      This is a browser-only interactive demo using fictional Cluj-Napoca accounts. No real
+      passwords, JWT tokens, email verification, or backend requests are used.
+    </p>
+
+    <div>
+      <button type="button" class="btn btn-primary" (click)="onEnterDefaultDemo()">
+        Enter Demo (Ana Pop · Centru)
+      </button>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <h2 style="margin: 0; font-size: 1.05rem;">Choose a Predefined Demo Account</h2>
+    <div class="grid-2">
+      @for (account of demoAccounts(); track account.userId) {
+        <div class="card stack">
+          <strong>{{ account.label }}</strong>
+          <span class="muted">{{ account.roleHint }}</span>
+          <div>
+            <button type="button" class="btn btn-sm" (click)="onEnterAsAccount(account.userId)">
+              Enter as {{ account.label.split(' ')[0] }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card stack">
+    <h2 style="margin: 0; font-size: 1.05rem;">Or Sign In by Demo Email</h2>
+
+    @if (errorMessage()) {
+      <div class="alert-error">{{ errorMessage() }}</div>
+    }
+
+    <form class="stack" [formGroup]="loginForm" (ngSubmit)="onSubmitEmailLogin()">
+      <div class="field">
+        <label for="login-email">Demo Email</label>
+        <input id="login-email" type="email" formControlName="email" />
+        @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+          <span class="error-text">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="row">
+        <button type="submit" class="btn">Sign In</button>
+        <a routerLink="/register">Create a fictional demo profile</a>
+      </div>
+    </form>
+  </div>
+</section>

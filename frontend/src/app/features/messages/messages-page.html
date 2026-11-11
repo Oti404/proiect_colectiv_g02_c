@@ -1,0 +1,149 @@
+<section class="stack">
+  <div class="card row" style="justify-content: space-between;">
+    <div>
+      <h1 style="margin: 0;">Messages</h1>
+      <span class="muted">
+        Simulated local conversations ({{ totalUnread() }} unread across threads)
+      </span>
+    </div>
+
+    <div class="row">
+      <select
+        aria-label="Start conversation with user"
+        style="padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;"
+        [ngModel]="selectedNewChatUserId()"
+        (ngModelChange)="selectedNewChatUserId.set($event)"
+      >
+        <option value="">Start chat with...</option>
+        @for (user of otherUsers(); track user.id) {
+          <option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.neighborhood }})</option>
+        }
+      </select>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [disabled]="!selectedNewChatUserId()"
+        (click)="onStartNewChat()"
+      >
+        Open Chat
+      </button>
+    </div>
+  </div>
+
+  <div class="grid-2" style="grid-template-columns: minmax(260px, 1fr) minmax(320px, 2fr); align-items: start;">
+    <aside class="card stack">
+      <h2 style="margin: 0; font-size: 1rem;">Conversations ({{ conversations().length }})</h2>
+      @if (conversations().length === 0) {
+        <p class="muted" style="margin: 0;">No conversations yet.</p>
+      } @else {
+        <div class="stack">
+          @for (conv of conversations(); track conv.conversation.id) {
+            <a
+              class="card stack"
+              style="gap: 0.25rem; padding: 0.75rem;"
+              [style.border-color]="conv.conversation.id === id() ? '#2563eb' : '#e5e7eb'"
+              [style.background]="conv.conversation.id === id() ? '#eff6ff' : '#ffffff'"
+              [routerLink]="['/messages', conv.conversation.id]"
+            >
+              <div class="row" style="justify-content: space-between;">
+                <strong>{{ getParticipantNames(conv) }}</strong>
+                @if (conv.unreadCount > 0) {
+                  <span class="badge badge-info">{{ conv.unreadCount }} unread</span>
+                }
+              </div>
+              @if (conv.lastMessage; as last) {
+                <span class="muted" style="font-size: 0.82rem;">
+                  {{ last.content }}
+                </span>
+                <span class="muted" style="font-size: 0.75rem;">
+                  {{ last.sentAt | date: 'short' }}
+                </span>
+              } @else {
+                <span class="muted" style="font-size: 0.82rem;">No messages yet</span>
+              }
+            </a>
+          }
+        </div>
+      }
+    </aside>
+
+    <div class="card stack">
+      @if (activeConversation(); as active) {
+        <div class="row" style="justify-content: space-between; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">
+          <div>
+            <strong style="font-size: 1.05rem;">{{ getParticipantNames(active) }}</strong>
+            @if (active.otherParticipants[0]; as other) {
+              <div class="muted">
+                <a [routerLink]="['/users', other.id]">View {{ other.firstName }}'s Profile</a>
+              </div>
+            }
+          </div>
+          <span class="badge badge-success">Read</span>
+        </div>
+
+        <div class="stack" style="max-height: 360px; overflow-y: auto; padding: 0.25rem 0;">
+          @if (activeMessages().length === 0) {
+            <p class="muted">No messages in this conversation yet. Say hello!</p>
+          } @else {
+            @for (msg of activeMessages(); track msg.id) {
+              @let isMine = msg.senderId === currentUser()?.id;
+              <div
+                class="card stack"
+                style="gap: 0.2rem; padding: 0.6rem 0.75rem;"
+                [style.background]="isMine ? '#eff6ff' : '#f9fafb'"
+              >
+                <div class="row" style="justify-content: space-between;">
+                  <strong style="font-size: 0.85rem;">{{ getSenderLabel(msg.senderId) }}</strong>
+                  <span class="muted" style="font-size: 0.75rem;">
+                    {{ msg.sentAt | date: 'short' }}
+                  </span>
+                </div>
+                <p style="margin: 0;">{{ msg.content }}</p>
+                @if (msg.isSimulatedReply) {
+                  <span class="badge badge-warn" style="align-self: flex-start;">
+                    Demo simulated reply
+                  </span>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        @if (sendError()) {
+          <div class="alert-error">{{ sendError() }}</div>
+        }
+
+        <form class="stack" (ngSubmit)="onSendMessage(active.conversation.id)">
+          <div class="field">
+            <label for="msg-input">Message</label>
+            <textarea
+              id="msg-input"
+              rows="2"
+              name="draftMessage"
+              placeholder="Write a message..."
+              [ngModel]="draftMessage()"
+              (ngModelChange)="draftMessage.set($event)"
+            ></textarea>
+          </div>
+
+          <div class="row" style="justify-content: space-between;">
+            <label class="row" style="gap: 0.4rem;">
+              <input
+                type="checkbox"
+                name="simulateReply"
+                [ngModel]="includeSimulatedReply()"
+                (ngModelChange)="includeSimulatedReply.set($event)"
+              />
+              <span class="muted">Also add a demo simulated reply</span>
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Send Message</button>
+          </div>
+        </form>
+      } @else {
+        <p class="muted" style="margin: 0;">
+          Select a conversation on the left or start a new chat above.
+        </p>
+      }
+    </div>
+  </div>
+</section>

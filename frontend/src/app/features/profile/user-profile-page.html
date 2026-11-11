@@ -1,0 +1,110 @@
+@if (profileView(); as view) {
+  <section class="stack">
+    <div class="row">
+      <a class="btn btn-sm" routerLink="/search">← Back to Search</a>
+    </div>
+
+    @if (view.isBlockedEitherWay) {
+      <div class="card stack">
+        <h1 style="margin: 0;">Profile Unavailable</h1>
+        <p class="muted">
+          This profile is hidden because of a block relationship.
+        </p>
+        @if (view.isBlockedByMe) {
+          <div>
+            <button type="button" class="btn btn-sm" (click)="onUnblock(view.user.id)">
+              Unblock {{ view.user.firstName }}
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="card stack">
+        <div class="row" style="justify-content: space-between;">
+          <div>
+            <h1 style="margin: 0;">{{ view.user.firstName }} {{ view.user.lastName }}</h1>
+            <span class="muted">
+              {{ view.user.neighborhood }}
+              @if (!view.isOwnProfile) {
+                · ~{{ view.distanceKm }} km away
+              }
+            </span>
+          </div>
+
+          @if (view.isOwnProfile) {
+            <a class="btn btn-primary btn-sm" routerLink="/profile">Edit My Profile</a>
+          } @else {
+            <div class="row">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                (click)="onSendMessage(view.user.id)"
+              >
+                Send Message
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm"
+                (click)="onInviteToPlaydate(view.user.id)"
+              >
+                Invite to Playdate
+              </button>
+              @if (confirmingBlock()) {
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  (click)="onConfirmBlock(view.user.id)"
+                >
+                  Confirm Block
+                </button>
+                <button type="button" class="btn btn-sm" (click)="confirmingBlock.set(false)">
+                  Cancel
+                </button>
+              } @else {
+                <button type="button" class="btn btn-sm" (click)="confirmingBlock.set(true)">
+                  Block User
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        @if (view.user.bio) {
+          <p style="margin: 0;">{{ view.user.bio }}</p>
+        }
+      </div>
+
+      <div class="card stack">
+        <h2 style="margin: 0;">{{ view.user.firstName }}'s Dogs ({{ view.dogs.length }})</h2>
+        @if (view.dogs.length === 0) {
+          <p class="muted" style="margin: 0;">No dogs listed.</p>
+        } @else {
+          <div class="grid-2">
+            @for (item of view.dogs; track item.dog.id) {
+              <div class="card stack">
+                <div class="row" style="justify-content: space-between;">
+                  <strong>{{ item.dog.name }}</strong>
+                  <span class="badge">{{ item.dog.temperament }}</span>
+                </div>
+                <span class="muted">
+                  {{ item.breedName }} · {{ item.dog.size }} · {{ item.ageLabel }}
+                </span>
+                <div>
+                  <a class="btn btn-sm" [routerLink]="['/dogs', item.dog.id]">View Dog Profile</a>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+} @else {
+  <section class="card stack">
+    <h1 style="margin: 0;">User Not Found</h1>
+    <p class="muted">The requested user profile does not exist in demo data.</p>
+    <div>
+      <a class="btn btn-sm" routerLink="/search">Back to Search</a>
+    </div>
+  </section>
+}

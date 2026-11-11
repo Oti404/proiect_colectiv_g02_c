@@ -1,0 +1,128 @@
+<section class="stack">
+  <div class="card stack">
+    <div class="row" style="justify-content: space-between;">
+      <div>
+        <h1 style="margin: 0;">Events &amp; Playdates</h1>
+        <span class="muted">
+          Discover public walks/meetups, manage organized events, and respond to private
+          playdates.
+        </span>
+      </div>
+      <a class="btn btn-primary btn-sm" routerLink="/events/new">+ Create Event</a>
+    </div>
+
+    <div class="row">
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="activeTab() === 'PUBLIC'"
+        (click)="setTab('PUBLIC')"
+      >
+        Public Upcoming ({{ publicEvents().length }})
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="activeTab() === 'INVITATIONS'"
+        (click)="setTab('INVITATIONS')"
+      >
+        Invitations ({{ invitedEvents().length }})
+        @if (pendingInvitationsCount() > 0) {
+          <span class="badge badge-warn">{{ pendingInvitationsCount() }} pending</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="activeTab() === 'ORGANIZED'"
+        (click)="setTab('ORGANIZED')"
+      >
+        My Organized ({{ organizedEvents().length }})
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="activeTab() === 'ALL'"
+        (click)="setTab('ALL')"
+      >
+        All Visible ({{ allVisibleEvents().length }})
+      </button>
+    </div>
+  </div>
+
+  @if (displayedEvents().length === 0) {
+    <div class="card stack">
+      <strong>No events in this tab yet.</strong>
+      <p class="muted" style="margin: 0;">
+        Create a private playdate or public group walk to get started.
+      </p>
+      <div>
+        <a class="btn btn-primary btn-sm" routerLink="/events/new">+ Create Event</a>
+      </div>
+    </div>
+  } @else {
+    <div class="grid-2">
+      @for (ev of displayedEvents(); track ev.id) {
+        <article class="card stack">
+          <div class="row" style="justify-content: space-between;">
+            <strong>{{ ev.title }}</strong>
+            <div class="row" style="gap: 0.35rem;">
+              <span class="badge">{{ ev.type }}</span>
+              <span class="badge" [class.badge-info]="ev.visibility === 'PUBLIC'">
+                {{ ev.visibility }}
+              </span>
+              @if (ev.status === 'CANCELLED') {
+                <span class="badge badge-danger">CANCELLED</span>
+              }
+            </div>
+          </div>
+
+          <span class="muted">
+            {{ ev.startsAt | date: 'medium' }} – {{ ev.endsAt | date: 'shortTime' }}
+          </span>
+          <span class="muted">Location: {{ getLocationLabel(ev) }}</span>
+          <span class="muted">
+            Organizer:
+            @if (ev.organizer) {
+              {{ ev.organizer.firstName }} {{ ev.organizer.lastName }}
+            } @else {
+              Deleted user
+            }
+          </span>
+
+          <div class="row">
+            <span class="badge badge-success">
+              {{ ev.goingDogsCount }}
+              @if (ev.maxParticipants !== null) {
+                / {{ ev.maxParticipants }}
+              }
+              dogs going
+            </span>
+            @if (ev.isFull) {
+              <span class="badge badge-danger">FULL</span>
+            }
+            @if (ev.currentUserInvitation; as inv) {
+              <span
+                class="badge"
+                [class.badge-warn]="inv.status === 'PENDING'"
+                [class.badge-success]="inv.status === 'ACCEPTED'"
+                [class.badge-danger]="inv.status === 'DECLINED'"
+              >
+                Invite: {{ inv.status }}
+              </span>
+            }
+            @if (ev.currentUserDogRsvps.length > 0) {
+              <span class="badge badge-info">
+                My dogs: {{ ev.currentUserDogRsvps.length }} RSVP
+              </span>
+            }
+          </div>
+
+          <div>
+            <a class="btn btn-primary btn-sm" [routerLink]="['/events', ev.id]">View Event</a>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

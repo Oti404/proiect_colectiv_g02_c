@@ -1,0 +1,218 @@
+@if (currentUser(); as user) {
+  <section class="stack">
+    <div class="card stack">
+      <div class="row" style="justify-content: space-between;">
+        <h1 style="margin: 0;">My Profile</h1>
+        <span class="badge badge-info">{{ user.neighborhood }}</span>
+      </div>
+      <p class="muted" style="margin: 0;">
+        Email: {{ user.email }} · Approximate coords: {{ user.approxLatitude }},
+        {{ user.approxLongitude }}
+      </p>
+
+      @if (profileMessage()) {
+        <div class="alert-success">{{ profileMessage() }}</div>
+      }
+      @if (profileError()) {
+        <div class="alert-error">{{ profileError() }}</div>
+      }
+
+      <form class="stack" [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+        <div class="grid-2">
+          <div class="field">
+            <label for="prof-first">First Name *</label>
+            <input id="prof-first" type="text" formControlName="firstName" />
+            @if (profileForm.controls.firstName.touched && profileForm.controls.firstName.invalid) {
+              <span class="error-text">First name is required.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="prof-last">Last Name *</label>
+            <input id="prof-last" type="text" formControlName="lastName" />
+            @if (profileForm.controls.lastName.touched && profileForm.controls.lastName.invalid) {
+              <span class="error-text">Last name is required.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="prof-neighborhood">Approximate Neighborhood *</label>
+            <select id="prof-neighborhood" formControlName="neighborhood">
+              @for (area of neighborhoods; track area) {
+                <option [value]="area">{{ area }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="prof-bio">Bio</label>
+          <textarea id="prof-bio" rows="2" formControlName="bio"></textarea>
+        </div>
+
+        <div>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card stack">
+      <div class="row" style="justify-content: space-between;">
+        <h2 style="margin: 0;">My Dogs ({{ myDogs().length }})</h2>
+        <button type="button" class="btn btn-primary btn-sm" (click)="onOpenAddDog()">
+          + Add Dog
+        </button>
+      </div>
+
+      @if (dogActionMessage()) {
+        <div class="alert-success">{{ dogActionMessage() }}</div>
+      }
+
+      @if (showDogForm()) {
+        <form
+          class="card stack"
+          style="background: #f9fafb;"
+          [formGroup]="dogForm"
+          (ngSubmit)="onSubmitDog()"
+        >
+          <h3 style="margin: 0;">{{ editingDogId() ? 'Edit Dog' : 'Add a New Dog' }}</h3>
+
+          @if (dogFormError()) {
+            <div class="alert-error">{{ dogFormError() }}</div>
+          }
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="dog-name">Dog Name *</label>
+              <input id="dog-name" type="text" formControlName="name" />
+              @if (dogForm.controls.name.touched && dogForm.controls.name.invalid) {
+                <span class="error-text">Dog name is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="dog-breed">Breed *</label>
+              <select id="dog-breed" formControlName="breedId">
+                @for (breed of breeds(); track breed.id) {
+                  <option [value]="breed.id">{{ breed.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-sex">Sex *</label>
+              <select id="dog-sex" formControlName="sex">
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-size">Size *</label>
+              <select id="dog-size" formControlName="size">
+                <option value="SMALL">Small</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LARGE">Large</option>
+                <option value="GIANT">Giant</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-temp">Temperament *</label>
+              <select id="dog-temp" formControlName="temperament">
+                <option value="FRIENDLY">Friendly</option>
+                <option value="PLAYFUL">Playful</option>
+                <option value="SHY">Shy</option>
+                <option value="REACTIVE">Reactive</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-birth">Birth Date (optional)</label>
+              <input id="dog-birth" type="date" formControlName="birthDate" />
+            </div>
+          </div>
+
+          <label class="row" style="gap: 0.5rem;">
+            <input type="checkbox" formControlName="neutered" />
+            <span>Neutered / Spayed</span>
+          </label>
+
+          <div class="row">
+            <button type="submit" class="btn btn-primary btn-sm">
+              {{ editingDogId() ? 'Save Changes' : 'Add Dog' }}
+            </button>
+            <button type="button" class="btn btn-sm" (click)="onCancelDogForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      @if (myDogs().length === 0) {
+        <p class="muted">You have not added any dogs yet. Add one to participate in Events & Care.</p>
+      } @else {
+        <div class="grid-2">
+          @for (dog of myDogs(); track dog.id) {
+            <div class="card stack">
+              <div class="row" style="justify-content: space-between;">
+                <strong>{{ dog.name }}</strong>
+                <span class="badge">{{ dog.temperament }}</span>
+              </div>
+              <span class="muted">
+                {{ getBreedName(dog.breedId) }} · {{ dog.size }} · {{ dog.sex }} ·
+                {{ getDogAge(dog.birthDate) }}
+              </span>
+              <span class="muted">{{ dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
+
+              <div class="row">
+                <a class="btn btn-sm" [routerLink]="['/dogs', dog.id]">View Details</a>
+                <button type="button" class="btn btn-sm" (click)="onOpenEditDog(dog)">Edit</button>
+                @if (confirmingDeleteDogId() === dog.id) {
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    (click)="onConfirmDeleteDog(dog.id)"
+                  >
+                    Confirm Remove
+                  </button>
+                  <button type="button" class="btn btn-sm" (click)="onCancelDeleteDog()">
+                    Cancel
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    (click)="onRequestDeleteDog(dog.id)"
+                  >
+                    Remove
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="card stack">
+      <h2 style="margin: 0; font-size: 1.05rem;">Blocked Users ({{ blockedUsers().length }})</h2>
+      @if (blockedUsers().length === 0) {
+        <p class="muted" style="margin: 0;">You have not blocked any users.</p>
+      } @else {
+        <div class="stack">
+          @for (blocked of blockedUsers(); track blocked.id) {
+            <div class="row" style="justify-content: space-between;">
+              <span>{{ blocked.firstName }} {{ blocked.lastName }} ({{ blocked.neighborhood }})</span>
+              <button
+                type="button"
+                class="btn btn-sm"
+                (click)="onUnblockUser(blocked.id)"
+              >
+                Unblock
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+}

@@ -1,0 +1,109 @@
+@if (details(); as info) {
+  <section class="stack">
+    <div class="row">
+      <a class="btn btn-sm" routerLink="/search">← Back to Search</a>
+    </div>
+
+    <div class="card stack">
+      <div class="row" style="justify-content: space-between;">
+        <div>
+          <h1 style="margin: 0;">{{ info.dog.name }}</h1>
+          <span class="muted">
+            {{ info.breed.name }} · {{ info.dog.size }} · {{ info.dog.sex }} · {{ info.ageLabel }}
+          </span>
+        </div>
+        <span class="badge badge-info">{{ info.dog.temperament }}</span>
+      </div>
+
+      <div class="row">
+        <span class="badge">{{ info.dog.neutered ? 'Neutered / Spayed' : 'Not neutered' }}</span>
+        @if (info.dog.birthDate) {
+          <span class="badge">Born: {{ info.dog.birthDate }}</span>
+        } @else {
+          <span class="badge">Birth date unknown</span>
+        }
+        @if (info.distanceKm !== null) {
+          <span class="badge badge-success">
+            ~{{ info.distanceKm }} km away ({{ info.owner.neighborhood }})
+          </span>
+        }
+      </div>
+
+      <div class="row" style="padding-top: 0.25rem;">
+        @if (isOwnDog()) {
+          <a class="btn btn-primary btn-sm" routerLink="/profile">Edit in My Profile</a>
+          <a class="btn btn-sm" routerLink="/care">View Health &amp; Care</a>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="onSendMessage(info.owner.id)"
+          >
+            Send Message
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm"
+            (click)="onInviteToPlaydate(info.owner.id)"
+          >
+            Invite to Playdate
+          </button>
+
+          @if (confirmingBlock()) {
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              (click)="onConfirmBlock(info.owner.id)"
+            >
+              Confirm Block Owner
+            </button>
+            <button type="button" class="btn btn-sm" (click)="confirmingBlock.set(false)">
+              Cancel
+            </button>
+          } @else {
+            <button type="button" class="btn btn-sm" (click)="confirmingBlock.set(true)">
+              Block Owner
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="card stack">
+      <h2 style="margin: 0; font-size: 1.05rem;">Breed Info: {{ info.breed.name }}</h2>
+      <div class="row">
+        <span class="badge">Typical Size: {{ info.breed.size }}</span>
+        <span class="badge">Energy Level: {{ info.breed.energyLevel }} / 5</span>
+        @if (info.breed.heatSensitive) {
+          <span class="badge badge-warn">Heat Sensitive</span>
+        }
+        @if (info.breed.breathingIssues) {
+          <span class="badge badge-warn">Breathing Sensitivity</span>
+        }
+      </div>
+      <p style="margin: 0;">{{ info.breed.careTips }}</p>
+    </div>
+
+    <div class="card stack">
+      <h2 style="margin: 0; font-size: 1.05rem;">Owner</h2>
+      <div class="row" style="justify-content: space-between;">
+        <div>
+          <strong>{{ info.owner.firstName }} {{ info.owner.lastName }}</strong>
+          <div class="muted">{{ info.owner.neighborhood }}</div>
+          @if (info.owner.bio) {
+            <p class="muted" style="margin: 0.25rem 0 0;">{{ info.owner.bio }}</p>
+          }
+        </div>
+        <a class="btn btn-sm" [routerLink]="['/users', info.owner.id]">Open Owner Profile</a>
+      </div>
+    </div>
+  </section>
+} @else {
+  <section class="card stack">
+    <h1 style="margin: 0;">Dog Not Found</h1>
+    <p class="muted">This dog does not exist or belongs to a blocked user.</p>
+    <div>
+      <a class="btn btn-sm" routerLink="/search">Back to Search</a>
+    </div>
+  </section>
+}

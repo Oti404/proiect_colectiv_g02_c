@@ -1,0 +1,148 @@
+<section class="container stack">
+  <header class="card stack">
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <div>
+        <h1>Dog-Friendly Places Directory</h1>
+        <p class="muted">
+          Optional offline Cluj-Napoca places directory (parks, dog runs, cafes, vets, pet shops)
+          with external map directions and event shortcuts.
+        </p>
+      </div>
+      <span class="badge badge-info">Optional P2 · Directory Mode</span>
+    </div>
+
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <div class="row">
+        @for (opt of categoryOptions; track opt.value) {
+          <button
+            type="button"
+            [class]="activeCategory() === opt.value ? 'btn btn-primary btn-sm' : 'btn btn-sm'"
+            (click)="setCategory(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <div class="field" style="min-width: 240px;">
+        <label for="places-search">Search name or neighborhood</label>
+        <input
+          id="places-search"
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          placeholder="e.g. Parcul Central, Zorilor..."
+        />
+      </div>
+    </div>
+  </header>
+
+  @if (filteredPlaces().length === 0) {
+    <section class="card stack">
+      <h2>No Matching Places</h2>
+      <p class="muted">Try another category or clear your search query.</p>
+      <div>
+        <button
+          type="button"
+          class="btn btn-sm"
+          (click)="setCategory('ALL'); searchQuery.set('')"
+        >
+          Reset Place Filters
+        </button>
+      </div>
+    </section>
+  } @else {
+    <div class="grid-2" style="align-items: start;">
+      <section class="card stack">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h2>Places ({{ filteredPlaces().length }})</h2>
+          <span class="muted">Select a spot to inspect</span>
+        </div>
+
+        <ul class="stack" style="list-style: none;">
+          @for (place of filteredPlaces(); track place.id) {
+            @let isSelected = selectedPlace()?.id === place.id;
+            <li>
+              <button
+                type="button"
+                class="card stack"
+                style="width: 100%; text-align: left; cursor: pointer; padding: 0.75rem;"
+                [style.border-color]="isSelected ? '#2563eb' : '#e5e7eb'"
+                [style.background]="isSelected ? '#eff6ff' : '#ffffff'"
+                (click)="selectPlace(place.id)"
+              >
+                <div class="row" style="justify-content: space-between; align-items: center;">
+                  <strong>{{ place.name }}</strong>
+                  <span class="badge badge-info">{{ formatPlaceType(place.type) }}</span>
+                </div>
+                <div class="muted" style="font-size: 0.88rem;">
+                  {{ place.neighborhood }}
+                  @if (place.address) {
+                    · {{ place.address }}
+                  }
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      @if (selectedPlace(); as place) {
+        <section class="card stack">
+          <div class="row" style="justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h2>{{ place.name }}</h2>
+              <p class="muted">{{ place.neighborhood }}</p>
+            </div>
+            <div class="row">
+              <span class="badge badge-info">{{ formatPlaceType(place.type) }}</span>
+              <span class="badge">{{ place.source }}</span>
+            </div>
+          </div>
+
+          <div class="stack" style="gap: 0.35rem;">
+            <p>
+              <strong>Address:</strong>
+              {{ place.address ?? 'See coordinates below' }}
+            </p>
+            @if (place.openingHours) {
+              <p><strong>Hours:</strong> {{ place.openingHours }}</p>
+            }
+            @if (place.phone) {
+              <p><strong>Phone:</strong> {{ place.phone }}</p>
+            }
+            @if (place.website) {
+              <p>
+                <strong>Website:</strong>
+                <a [href]="place.website" target="_blank" rel="noopener noreferrer">
+                  {{ place.website }}
+                </a>
+              </p>
+            }
+            <p class="muted" style="font-size: 0.85rem;">
+              Coordinates: {{ place.latitude }}, {{ place.longitude }}
+            </p>
+          </div>
+
+          <div class="row">
+            <a
+              class="btn btn-sm"
+              [href]="getDirectionsUrl(place)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open External Directions
+            </a>
+            <a
+              class="btn btn-primary btn-sm"
+              routerLink="/events/new"
+              [queryParams]="{ placeId: place.id, visibility: 'PUBLIC', type: 'GROUP_WALK' }"
+            >
+              Create Event Here
+            </a>
+          </div>
+        </section>
+      }
+    </div>
+  }
+</section>
