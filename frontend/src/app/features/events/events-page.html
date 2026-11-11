@@ -1,73 +1,97 @@
-<section class="stack">
-  <div class="card stack">
-    <div class="row" style="justify-content: space-between;">
+<section class="stack events-page-wrapper">
+  <!-- Events Control & Tabs Card -->
+  <div class="card events-header-card stack">
+    <div class="row header-main-row" style="justify-content: space-between; align-items: flex-start;">
       <div>
-        <h1 style="margin: 0;">Events &amp; Playdates</h1>
-        <span class="muted">
-          Discover public walks/meetups, manage organized events, and respond to private
-          playdates.
-        </span>
+        <div class="badge-tag">
+          <span class="icon">📅</span>
+          <span>Community Activities</span>
+        </div>
+        <h1 class="page-title">Events &amp; Playdates</h1>
+        <p class="muted subtitle">
+          Discover public walks and breed meetups across Cluj-Napoca, or organize private playdates with friends.
+        </p>
       </div>
-      <a class="btn btn-primary btn-sm" routerLink="/events/new">+ Create Event</a>
+      <a class="btn btn-primary create-event-btn" routerLink="/events/new">
+        + Create Event
+      </a>
     </div>
 
-    <div class="row">
+    <!-- Navigation Tabs -->
+    <div class="tabs-row row">
       <button
         type="button"
-        class="btn btn-sm"
-        [class.btn-primary]="activeTab() === 'PUBLIC'"
+        class="tab-btn"
+        [class.active]="activeTab() === 'PUBLIC'"
         (click)="setTab('PUBLIC')"
       >
-        Public Upcoming ({{ publicEvents().length }})
+        <span>Public Upcoming</span>
+        <span class="tab-count">{{ publicEvents().length }}</span>
       </button>
+
       <button
         type="button"
-        class="btn btn-sm"
-        [class.btn-primary]="activeTab() === 'INVITATIONS'"
+        class="tab-btn"
+        [class.active]="activeTab() === 'INVITATIONS'"
         (click)="setTab('INVITATIONS')"
       >
-        Invitations ({{ invitedEvents().length }})
+        <span>Invitations</span>
+        <span class="tab-count">{{ invitedEvents().length }}</span>
         @if (pendingInvitationsCount() > 0) {
-          <span class="badge badge-warn">{{ pendingInvitationsCount() }} pending</span>
+          <span class="badge badge-accent tab-alert">{{ pendingInvitationsCount() }} pending</span>
         }
       </button>
+
       <button
         type="button"
-        class="btn btn-sm"
-        [class.btn-primary]="activeTab() === 'ORGANIZED'"
+        class="tab-btn"
+        [class.active]="activeTab() === 'ORGANIZED'"
         (click)="setTab('ORGANIZED')"
       >
-        My Organized ({{ organizedEvents().length }})
+        <span>My Organized</span>
+        <span class="tab-count">{{ organizedEvents().length }}</span>
       </button>
+
       <button
         type="button"
-        class="btn btn-sm"
-        [class.btn-primary]="activeTab() === 'ALL'"
+        class="tab-btn"
+        [class.active]="activeTab() === 'ALL'"
         (click)="setTab('ALL')"
       >
-        All Visible ({{ allVisibleEvents().length }})
+        <span>All Visible</span>
+        <span class="tab-count">{{ allVisibleEvents().length }}</span>
       </button>
     </div>
   </div>
 
+  <!-- Events List -->
   @if (displayedEvents().length === 0) {
-    <div class="card stack">
-      <strong>No events in this tab yet.</strong>
-      <p class="muted" style="margin: 0;">
-        Create a private playdate or public group walk to get started.
+    <div class="card empty-state stack">
+      <div class="empty-icon">📅🐾</div>
+      <h3>No events in this category yet</h3>
+      <p class="muted">
+        Create a private playdate or a public group walk to bring dog owners together!
       </p>
       <div>
         <a class="btn btn-primary btn-sm" routerLink="/events/new">+ Create Event</a>
       </div>
     </div>
   } @else {
-    <div class="grid-2">
+    <div class="grid-2 events-grid">
       @for (ev of displayedEvents(); track ev.id) {
-        <article class="card stack">
-          <div class="row" style="justify-content: space-between;">
-            <strong>{{ ev.title }}</strong>
-            <div class="row" style="gap: 0.35rem;">
-              <span class="badge">{{ ev.type }}</span>
+        <article class="card event-card stack">
+          <!-- Event Card Header -->
+          <div class="row event-card-top" style="justify-content: space-between; align-items: flex-start;">
+            <div class="event-title-block">
+              <h3 class="event-name">{{ ev.title }}</h3>
+              <div class="event-time-meta">
+                <span class="calendar-icon">🕒</span>
+                <span>{{ ev.startsAt | date: 'mediumDate' }}, {{ ev.startsAt | date: 'shortTime' }} – {{ ev.endsAt | date: 'shortTime' }}</span>
+              </div>
+            </div>
+
+            <div class="row event-type-badges" style="gap: 0.35rem;">
+              <span class="badge badge-type">{{ ev.type }}</span>
               <span class="badge" [class.badge-info]="ev.visibility === 'PUBLIC'">
                 {{ ev.visibility }}
               </span>
@@ -77,30 +101,40 @@
             </div>
           </div>
 
-          <span class="muted">
-            {{ ev.startsAt | date: 'medium' }} – {{ ev.endsAt | date: 'shortTime' }}
-          </span>
-          <span class="muted">Location: {{ getLocationLabel(ev) }}</span>
-          <span class="muted">
-            Organizer:
-            @if (ev.organizer) {
-              {{ ev.organizer.firstName }} {{ ev.organizer.lastName }}
-            } @else {
-              Deleted user
-            }
-          </span>
+          <!-- Location & Organizer info -->
+          <div class="event-details-meta stack" style="gap: 0.3rem;">
+            <div class="meta-item row" style="gap: 0.45rem;">
+              <span class="meta-icon">📍</span>
+              <span class="meta-text">{{ getLocationLabel(ev) }}</span>
+            </div>
+            <div class="meta-item row" style="gap: 0.45rem;">
+              <span class="meta-icon">👤</span>
+              <span class="meta-text">
+                Organizer:
+                @if (ev.organizer) {
+                  <strong>{{ ev.organizer.firstName }} {{ ev.organizer.lastName }}</strong>
+                  <span class="muted">({{ ev.organizer.neighborhood }})</span>
+                } @else {
+                  <span class="muted">Deleted user</span>
+                }
+              </span>
+            </div>
+          </div>
 
-          <div class="row">
+          <!-- Participation Indicators -->
+          <div class="row event-participation-row">
             <span class="badge badge-success">
-              {{ ev.goingDogsCount }}
+              🐾 {{ ev.goingDogsCount }}
               @if (ev.maxParticipants !== null) {
                 / {{ ev.maxParticipants }}
               }
               dogs going
             </span>
+
             @if (ev.isFull) {
               <span class="badge badge-danger">FULL</span>
             }
+
             @if (ev.currentUserInvitation; as inv) {
               <span
                 class="badge"
@@ -111,6 +145,7 @@
                 Invite: {{ inv.status }}
               </span>
             }
+
             @if (ev.currentUserDogRsvps.length > 0) {
               <span class="badge badge-info">
                 My dogs: {{ ev.currentUserDogRsvps.length }} RSVP
@@ -118,8 +153,11 @@
             }
           </div>
 
-          <div>
-            <a class="btn btn-primary btn-sm" [routerLink]="['/events', ev.id]">View Event</a>
+          <!-- Action Button -->
+          <div class="event-actions-row">
+            <a class="btn btn-primary btn-sm full-width" [routerLink]="['/events', ev.id]">
+              View Event Details &rarr;
+            </a>
           </div>
         </article>
       }
