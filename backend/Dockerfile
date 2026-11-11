@@ -4,7 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+# Generăm clientul Prisma (nu se urcă în repo), apoi compilăm
+RUN npx prisma generate && npm run build
 
 # Etapa 2: imaginea finală, doar cu ce trebuie la rulare
 FROM node:24-alpine

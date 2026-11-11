@@ -13,7 +13,24 @@ POSTGRES_PASSWORD=schimba_parola
 POSTGRES_DB=app_db
 ```
 
-Structura tabelelor e definită în [backend/prisma/schema.prisma](../backend/prisma/schema.prisma).
+Structura tabelelor e definită în [backend/prisma/schema.prisma](../backend/prisma/schema.prisma). Diagrama bazei de date: [docs/diagrams/db-schema.md](../docs/diagrams/db-schema.md).
+
+## Schema, migrări și date demo
+- **16 tabele**, după diagrama de clase din [docs/diagrams/class-diagram.svg](../docs/diagrams/class-diagram.svg).
+- **Migrările** sunt în `backend/prisma/migrations/` și se urcă în repo. Prima migrare conține și constrângerile `CHECK` pe care Prisma nu le poate declara în schemă (nota 1-5, un raport trebuie să aibă țintă, un eveniment se termină după ce începe etc.).
+- **Date demo** (`backend/prisma/seed.ts`): 17 rase (inclusiv „Mixed breed"), 5 utilizatori din Cluj și 8 câini. Conturile demo sunt `user1@demo.local` ... `user5@demo.local` (Ana Pop, Mihai Ionescu, Elena Rusu, Andrei Mureșan, Ioana Cristea), toate cu parola `pass1`.
+- **Cu Docker nu trebuie făcut nimic manual:** serviciul `migrate` din `compose.yaml` aplică migrările și rulează seed-ul la fiecare `docker compose up`, înaintea backend-ului. Seed-ul se poate rula de oricâte ori.
+- **Fără Docker pentru backend** (baza rămâne în Docker): din `backend/` rulați `npx prisma migrate dev` și `npx prisma db seed`.
+
+### Reguli de ștergere
+- Ștergerea unui utilizator șterge în cascadă câinii, postările, like-urile, comentariile, jurnalul de sănătate, blocările, rapoartele, recenziile și participările lui. Asta înseamnă „șterge-mi contul" (GDPR).
+- Mesajele rămân, cu expeditorul gol (se afișează „Utilizator șters"). La evenimente, organizatorul devine gol, iar backend-ul trece evenimentul pe `CANCELLED`.
+- O rasă nu se poate șterge cât timp există câini care o folosesc.
+
+### Modificări de schemă
+1. Modificați `schema.prisma`.
+2. Din `backend/`: `npx prisma migrate dev --name <ce_ati_schimbat>`.
+3. Urcați în repo fișierul nou din `prisma/migrations/`. Nu editați o migrare deja urcată, creați una nouă.
 
 ## Pornire și oprire
 Din rădăcina repo-ului:
