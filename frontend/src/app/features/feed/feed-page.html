@@ -1,14 +1,22 @@
-<section class="container stack">
-  <header class="card stack">
-    <h1>Community Feed</h1>
-    <p class="muted">
-      Share local walk updates, tag your dogs, and interact with nearby owners in the demo
-      community. Blocked users are automatically hidden.
+<section class="stack feed-page-wrapper">
+  <!-- Feed Header -->
+  <header class="card feed-header-card stack">
+    <div class="badge-tag">
+      <span class="tag-dot"></span>
+      <span>Community Moments</span>
+    </div>
+    <h1 class="page-title">Community Social Feed</h1>
+    <p class="muted subtitle">
+      Share daily walk memories, park updates, and dog photos across Cluj-Napoca.
+      Mutual blocks are automatically respected.
     </p>
   </header>
 
-  <section class="card stack">
-    <h2>Create a Post</h2>
+  <!-- Create Post Card -->
+  <section class="card post-creator-card stack">
+    <div class="row" style="gap: 0.5rem; align-items: center;">
+      <h2 class="creator-title">Share with the Community</h2>
+    </div>
 
     @if (postError(); as error) {
       <div class="alert-error">{{ error }}</div>
@@ -19,18 +27,18 @@
 
     <form class="stack" [formGroup]="postForm" (ngSubmit)="onCreatePost()">
       <div class="field">
-        <label for="feed-content">What is happening on your walk?</label>
+        <label for="feed-content">What happened on today's walk?</label>
         <textarea
           id="feed-content"
           rows="3"
           formControlName="content"
-          placeholder="Share a park update, playdate highlight, or dog tip..."
+          placeholder="Share a park meetup story, playdate highlight, or question for fellow owners..."
         ></textarea>
       </div>
 
       <div class="grid-2">
         <div class="field">
-          <label for="feed-dog">Tag Your Dog (optional)</label>
+          <label for="feed-dog">Tag One of Your Dogs (optional)</label>
           <select id="feed-dog" formControlName="dogId">
             <option value="">No dog tagged</option>
             @for (dog of myDogs(); track dog.id) {
@@ -51,86 +59,86 @@
       </div>
 
       @if (postForm.controls.imageUrl.value; as previewSrc) {
-        <div>
-          <p class="muted" style="font-size: 0.85rem; margin-bottom: 0.35rem;">Photo preview:</p>
+        <div class="photo-preview-box">
+          <span class="preview-label">Selected demo photo preview:</span>
           <img
             [src]="previewSrc"
             alt="Selected demo post preview"
-            style="max-width: 320px; width: 100%; border-radius: 6px; border: 1px solid #d1d5db;"
+            class="photo-preview-img"
           />
         </div>
       }
 
-      <div>
-        <button type="submit" class="btn btn-primary">Publish Post</button>
+      <div class="post-submit-row">
+        <button type="submit" class="btn btn-primary">
+          Publish Post
+        </button>
       </div>
     </form>
   </section>
 
+  <!-- Feed Posts Stream -->
   @if (posts().length === 0) {
-    <section class="card stack">
-      <h2>No Posts Visible</h2>
+    <section class="card empty-state stack">
+      <div class="empty-icon-dot"></div>
+      <h2 style="margin: 0; font-size: 1.35rem;">No Posts Visible</h2>
       <p class="muted">
-        There are no posts to display right now. Publish a post above to start the conversation.
+        There are no community posts to display right now. Share the first post above to start the conversation!
       </p>
     </section>
   } @else {
-    <div class="stack">
+    <div class="stack feed-stream">
       @for (item of posts(); track item.post.id) {
-        <article class="card stack">
-          <header class="row" style="justify-content: space-between; align-items: flex-start;">
-            <div class="row" style="align-items: center;">
+        <article class="card feed-post-card stack">
+          <!-- Post Header -->
+          <header class="row post-header" style="justify-content: space-between; align-items: flex-start;">
+            <div class="row post-author-block" style="gap: 0.85rem; align-items: center;">
               @if (item.author.avatarUrl) {
                 <img
                   [src]="item.author.avatarUrl"
                   [alt]="getFullName(item.author)"
-                  width="40"
-                  height="40"
-                  style="border-radius: 999px; object-fit: cover;"
+                  class="author-avatar-img"
                 />
               } @else {
                 <span
+                  class="author-avatar-fallback"
                   aria-hidden="true"
-                  style="
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 999px;
-                    background: #dbeafe;
-                    color: #1e40af;
-                    font-weight: 700;
-                    font-size: 0.9rem;
-                  "
                 >
                   {{ getInitials(item.author) }}
                 </span>
               }
 
-              <div>
-                <div class="row" style="align-items: center;">
-                  <a [routerLink]="['/users', item.author.id]">
+              <div class="stack" style="gap: 0.15rem;">
+                <div class="row" style="gap: 0.45rem; align-items: center;">
+                  <a [routerLink]="['/users', item.author.id]" class="author-name-link">
                     <strong>{{ getFullName(item.author) }}</strong>
                   </a>
                   @if (item.dog; as taggedDog) {
-                    <span class="badge badge-info">
+                    <span class="badge badge-info tagged-dog-badge">
+                      @if (taggedDog.photoUrl) {
+                        <img
+                          [src]="taggedDog.photoUrl"
+                          [alt]="taggedDog.name"
+                          style="width:1.3rem;height:1.3rem;border-radius:50%;object-fit:cover;display:inline-block;vertical-align:middle;flex-shrink:0;"
+                        />
+                      }
                       with
-                      <a [routerLink]="['/dogs', taggedDog.id]" style="color: inherit;">
+                      <a [routerLink]="['/dogs', taggedDog.id]" style="color: inherit; text-decoration: underline;">
                         {{ taggedDog.name }}
                       </a>
                     </span>
                   }
                 </div>
-                <div class="muted" style="font-size: 0.85rem;">
+                <div class="muted post-timestamp">
                   {{ item.author.neighborhood }} · {{ item.post.createdAt | date: 'medium' }}
                 </div>
               </div>
             </div>
 
+            <!-- Author Delete Action -->
             @if (item.canDelete) {
               @if (confirmDeletePostId() === item.post.id) {
-                <div class="row">
+                <div class="row" style="gap: 0.35rem;">
                   <button
                     type="button"
                     class="btn btn-danger btn-sm"
@@ -138,14 +146,14 @@
                   >
                     Confirm Delete
                   </button>
-                  <button type="button" class="btn btn-sm" (click)="cancelDeletePost()">
+                  <button type="button" class="btn btn-subtle btn-sm" (click)="cancelDeletePost()">
                     Cancel
                   </button>
                 </div>
               } @else {
                 <button
                   type="button"
-                  class="btn btn-danger btn-sm"
+                  class="btn btn-subtle btn-sm text-danger"
                   (click)="requestDeletePost(item.post.id)"
                 >
                   Delete Post
@@ -154,62 +162,71 @@
             }
           </header>
 
-          <p>{{ item.post.content }}</p>
+          <!-- Post Content -->
+          <div class="post-text-content">
+            <p>{{ item.post.content }}</p>
+          </div>
 
+          <!-- Post Attached Image -->
           @if (item.post.imageUrl; as postImage) {
-            <div>
+            <div class="post-media-container">
               <img
                 [src]="postImage"
                 alt="Community post photo"
-                style="max-width: 100%; max-height: 320px; border-radius: 6px; border: 1px solid #e5e7eb;"
+                class="post-photo-img"
               />
             </div>
           }
 
-          <div class="row" style="align-items: center;">
-            <button
-              type="button"
-              [class]="item.isLikedByMe ? 'btn btn-primary btn-sm' : 'btn btn-sm'"
-              (click)="onToggleLike(item.post.id)"
-            >
-              {{ item.isLikedByMe ? 'Unlike' : 'Like' }} ({{ item.likeCount }})
-            </button>
-            <span class="muted" style="font-size: 0.9rem;">
+          <!-- Likes & Comment Counter Bar -->
+          <div class="row post-engagement-bar" style="align-items: center; justify-content: space-between;">
+            <div class="row" style="gap: 0.75rem; align-items: center;">
+              <button
+                type="button"
+                [class]="item.isLikedByMe ? 'btn btn-accent btn-sm like-btn active' : 'btn btn-subtle btn-sm like-btn'"
+                (click)="onToggleLike(item.post.id)"
+              >
+                {{ item.isLikedByMe ? 'Liked' : 'Like' }} ({{ item.likeCount }})
+              </button>
+            </div>
+
+            <span class="muted comment-counter">
               {{ item.comments.length }} Comment{{ item.comments.length === 1 ? '' : 's' }}
             </span>
           </div>
 
-          <section
-            class="stack"
-            style="border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.25rem;"
-          >
+          <!-- Comments Section -->
+          <section class="stack comments-section">
             @if (item.comments.length > 0) {
-              <ul class="stack" style="list-style: none;">
+              <ul class="stack comments-list" style="list-style: none; padding: 0; margin: 0;">
                 @for (comment of item.comments; track comment.id) {
-                  <li style="background: #f9fafb; padding: 0.5rem 0.75rem; border-radius: 6px;">
-                    <div class="row" style="justify-content: space-between; font-size: 0.85rem;">
-                      <a [routerLink]="['/users', comment.author.id]">
+                  <li class="comment-bubble stack">
+                    <div class="row" style="justify-content: space-between; font-size: 0.84rem;">
+                      <a [routerLink]="['/users', comment.author.id]" class="comment-author-name">
                         <strong>{{ getFullName(comment.author) }}</strong>
                       </a>
-                      <span class="muted">{{ comment.createdAt | date: 'short' }}</span>
+                      <span class="muted comment-time">{{ comment.createdAt | date: 'short' }}</span>
                     </div>
-                    <p style="margin-top: 0.25rem;">{{ comment.content }}</p>
+                    <p class="comment-text">{{ comment.content }}</p>
                   </li>
                 }
               </ul>
             }
 
-            <form class="stack" (submit)="onAddComment(item.post.id, $event)">
-              <div class="row" style="align-items: center;">
+            <!-- Comment Input Form -->
+            <form class="stack comment-composer-form" (submit)="onAddComment(item.post.id, $event)">
+              <div class="row comment-input-row" style="align-items: center; gap: 0.5rem;">
                 <input
                   type="text"
                   [value]="getCommentDraft(item.post.id)"
                   (input)="onCommentInput(item.post.id, $event)"
-                  placeholder="Write a comment..."
+                  placeholder="Add a friendly comment..."
                   [attr.aria-label]="'Write a comment on ' + getFullName(item.author) + ' post'"
-                  style="flex: 1;"
+                  class="comment-input-field"
                 />
-                <button type="submit" class="btn btn-sm">Comment</button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                  Comment
+                </button>
               </div>
               @if (getCommentError(item.post.id); as cErr) {
                 <span class="error-text">{{ cErr }}</span>

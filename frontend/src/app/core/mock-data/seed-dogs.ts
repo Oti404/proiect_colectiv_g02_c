@@ -11,7 +11,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'FRIENDLY',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-bella',
@@ -23,7 +23,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'SMALL',
     temperament: 'PLAYFUL',
     neutered: false,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-max',
@@ -35,7 +35,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'REACTIVE',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-luna',
@@ -47,7 +47,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'FRIENDLY',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-coco',
@@ -59,7 +59,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'MEDIUM',
     temperament: 'PLAYFUL',
     neutered: false,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-rocky',
@@ -71,7 +71,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'PLAYFUL',
     neutered: false,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1617895153857-82fe0c43621b?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-mia',
@@ -83,7 +83,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'SMALL',
     temperament: 'SHY',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1575425186775-b8de9a427e67?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-toby',
@@ -107,7 +107,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'FRIENDLY',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-daisy',
@@ -131,7 +131,7 @@ export const SEED_DOGS: Dog[] = [
     size: 'LARGE',
     temperament: 'FRIENDLY',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&h=400&fit=crop&auto=format',
   },
   {
     id: 'dog-pip',
@@ -143,6 +143,6 @@ export const SEED_DOGS: Dog[] = [
     size: 'SMALL',
     temperament: 'PLAYFUL',
     neutered: true,
-    photoUrl: null,
+    photoUrl: 'https://images.unsplash.com/photo-1529429617124-95b109e86bb8?w=400&h=400&fit=crop&auto=format',
   },
 ];

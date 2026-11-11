@@ -1,0 +1,227 @@
+.event-detail-wrapper {
+  max-width: 860px;
+  margin: 0 auto 3rem;
+  gap: 1.35rem;
+}
+
+.navigation-row {
+  margin-bottom: 0.25rem;
+}
+
+.event-hero-card, .invitation-card, .rsvp-management-card, .participants-card, .invitations-management-card {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.event-hero-card {
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-surface-subtle) 100%);
+}
+
+.badge-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.event-title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.event-time-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.badge-type {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+}
+
+.event-desc-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+
+  p {
+    margin: 0;
+    color: var(--color-text-main);
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+}
+
+.event-meta-grid {
+  gap: 0.85rem;
+}
+
+.meta-card {
+  padding: 0.85rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  gap: 0.2rem;
+
+  .meta-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .meta-val {
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+  }
+}
+
+.capacity-bar-text {
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+.organizer-link {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.event-organizer-actions {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* Invitation card */
+.invitation-card {
+  background: #f0f7ff;
+  border-color: #bfdbfe;
+}
+
+.invite-dog-selector {
+  gap: 0.65rem;
+}
+
+.dog-select-pill {
+  padding: 0.45rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* RSVP management */
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.rsvp-items-stack {
+  gap: 0.65rem;
+}
+
+.rsvp-dog-row {
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.dog-rsvp-name {
+  font-size: 0.95rem;
+}
+
+.rsvp-buttons-group {
+  gap: 0.35rem;
+}
+
+/* Participants */
+.participant-list {
+  gap: 0.5rem;
+}
+
+.participant-item {
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.part-avatar {
+  font-size: 1.3rem;
+}
+
+.dog-link {
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+.owner-link {
+  color: var(--color-text-main);
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+/* Additional invites */
+.invitations-list {
+  gap: 0.4rem;
+}
+
+.inv-item {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.additional-invites-block {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border-subtle);
+  gap: 0.65rem;
+}
+
+.checkboxes-grid {
+  gap: 0.5rem;
+}
+
+.invite-checkbox-label {
+  padding: 0.4rem 0.65rem;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .event-hero-top {
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .rsvp-dog-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .participant-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

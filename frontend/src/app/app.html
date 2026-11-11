@@ -1,37 +1,55 @@
 <header class="demo-header">
   <div class="container header-inner">
     <div class="brand-group">
-      <a class="brand" [routerLink]="isAuthenticated() ? '/search' : '/login'">DogApp</a>
-      <span class="badge badge-warn">FRONTEND DEMO</span>
+      <a class="brand" [routerLink]="isAuthenticated() ? '/search' : '/login'">
+        <span class="brand-badge-dot"></span>
+        <span class="brand-text">DogApp</span>
+      </a>
+      <span class="badge badge-warn demo-pill">FRONTEND DEMO</span>
     </div>
 
     @if (isAuthenticated(); as _auth) {
       <nav class="main-nav" aria-label="Primary navigation">
-        <a routerLink="/search" routerLinkActive="active">Search</a>
-        <a routerLink="/events" routerLinkActive="active">
-          Events
+        <a routerLink="/search" routerLinkActive="active" class="nav-item">
+          <span>Search</span>
+        </a>
+        <a routerLink="/events" routerLinkActive="active" class="nav-item">
+          <span>Events</span>
           @if (pendingInvitationsCount() > 0) {
-            <span class="badge badge-info">{{ pendingInvitationsCount() }}</span>
+            <span class="nav-badge badge-accent">{{ pendingInvitationsCount() }}</span>
           }
         </a>
-        <a routerLink="/messages" routerLinkActive="active">
-          Messages
+        <a routerLink="/messages" routerLinkActive="active" class="nav-item">
+          <span>Messages</span>
           @if (unreadMessagesCount() > 0) {
-            <span class="badge badge-info">{{ unreadMessagesCount() }}</span>
+            <span class="nav-badge badge-primary">{{ unreadMessagesCount() }}</span>
           }
         </a>
-        <a routerLink="/care" routerLinkActive="active">Care</a>
-        <a routerLink="/feed" routerLinkActive="active">Feed</a>
-        <a routerLink="/map" routerLinkActive="active">Map</a>
-        <a routerLink="/profile" routerLinkActive="active">Profile</a>
+        <a routerLink="/care" routerLinkActive="active" class="nav-item">
+          <span>Care</span>
+        </a>
+        <a routerLink="/feed" routerLinkActive="active" class="nav-item">
+          <span>Feed</span>
+        </a>
+        <a routerLink="/map" routerLinkActive="active" class="nav-item">
+          <span>Map</span>
+        </a>
+        <a routerLink="/profile" routerLinkActive="active" class="nav-item">
+          <span>Profile</span>
+        </a>
       </nav>
     }
 
     <div class="demo-controls">
       @if (currentUser(); as user) {
-        <label class="switcher-label">
-          <span class="muted">Account:</span>
+        <div class="switcher-wrapper">
+          <label class="switcher-label" for="demo-account-select">
+            <span class="avatar-mini">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+            <span class="user-name-mini">{{ user.firstName }}</span>
+          </label>
           <select
+            id="demo-account-select"
+            class="account-select"
             aria-label="Switch demo account"
             [value]="user.id"
             (change)="onSwitchAccount($event)"
@@ -40,18 +58,24 @@
               <option [value]="acc.userId">{{ acc.label }}</option>
             }
           </select>
-        </label>
+        </div>
       }
 
-      <button type="button" class="btn btn-sm" (click)="onResetDemoData()">Reset Demo Data</button>
+      <div class="header-actions">
+        <button type="button" class="btn btn-sm btn-subtle" (click)="onResetDemoData()" title="Reset mock database to initial seed">
+          Reset Data
+        </button>
 
-      @if (isAuthenticated()) {
-        <button type="button" class="btn btn-sm" (click)="onLogout()">Logout</button>
-      }
+        @if (isAuthenticated()) {
+          <button type="button" class="btn btn-sm btn-subtle" (click)="onLogout()">
+            Logout
+          </button>
+        }
+      </div>
     </div>
   </div>
 </header>
 
-<main class="container">
+<main class="container main-content">
   <router-outlet />
 </main>
