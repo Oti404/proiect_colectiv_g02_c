@@ -1,0 +1,209 @@
+<section class="stack discovery-wrapper">
+  <!-- Search & Filter Card -->
+  <div class="card search-control-card stack">
+    <div class="search-header-row row" style="justify-content: space-between; align-items: flex-start;">
+      <div>
+        <div class="badge-tag">
+          <span class="tag-dot"></span>
+          <span>Community Discovery</span>
+        </div>
+        <h1 class="page-title">Discover Nearby Dogs</h1>
+        @if (currentUser(); as user) {
+          <p class="muted location-hint">
+            Searching around your neighborhood: <strong>{{ user.neighborhood }}</strong> (Cluj-Napoca)
+          </p>
+        }
+      </div>
+      <div class="results-pill">
+        <span class="badge badge-info">{{ results().length }} dogs found</span>
+      </div>
+    </div>
+
+    <!-- Filters Area -->
+    <div class="filters-grid">
+      <div class="field search-field-main">
+        <label for="search-query">Search dog name, breed, or neighborhood</label>
+        <div class="input-with-icon">
+          <input
+            id="search-query"
+            type="text"
+            placeholder="Search by dog name, breed, or neighborhood (e.g. Luna, Husky, Gheorgheni)..."
+            [value]="filters().query"
+            (input)="updateQuery($event)"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="search-breed">Breed</label>
+        <select id="search-breed" [value]="filters().breedId ?? ''" (change)="updateBreed($event)">
+          <option value="">All breeds</option>
+          @for (breed of breeds(); track breed.id) {
+            <option [value]="breed.id">{{ breed.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="search-size">Size</label>
+        <select id="search-size" [value]="filters().size ?? ''" (change)="updateSize($event)">
+          <option value="">Any size</option>
+          <option value="SMALL">Small (&lt; 10 kg)</option>
+          <option value="MEDIUM">Medium (10–25 kg)</option>
+          <option value="LARGE">Large (25–45 kg)</option>
+          <option value="GIANT">Giant (45+ kg)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="search-temp">Temperament</label>
+        <select
+          id="search-temp"
+          [value]="filters().temperament ?? ''"
+          (change)="updateTemperament($event)"
+        >
+          <option value="">Any temperament</option>
+          <option value="FRIENDLY">Friendly</option>
+          <option value="PLAYFUL">Playful</option>
+          <option value="SHY">Shy</option>
+          <option value="REACTIVE">Reactive</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="search-age">Age Group</label>
+        <select id="search-age" [value]="filters().ageGroup" (change)="updateAgeGroup($event)">
+          <option value="ALL">All ages</option>
+          <option value="PUPPY">Puppy (&lt; 1.5 yrs)</option>
+          <option value="ADULT">Adult (1.5–7 yrs)</option>
+          <option value="SENIOR">Senior (7+ yrs)</option>
+        </select>
+      </div>
+
+      <div class="field distance-field">
+        <div class="row" style="justify-content: space-between;">
+          <label for="search-dist">Search Radius</label>
+          <span class="range-value">{{ filters().maxDistanceKm }} km</span>
+        </div>
+        <input
+          id="search-dist"
+          type="range"
+          min="1"
+          max="20"
+          step="1"
+          [value]="filters().maxDistanceKm"
+          (input)="updateMaxDistance($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Filter Footer Actions -->
+    <div class="filter-actions-row row" style="justify-content: space-between;">
+      <label class="row checkbox-label" style="gap: 0.5rem; cursor: pointer;">
+        <input
+          type="checkbox"
+          [checked]="filters().neuteredOnly"
+          (change)="updateNeuteredOnly($event)"
+        />
+        <span>Neutered / spayed only</span>
+      </label>
+
+      <button type="button" class="btn btn-sm btn-subtle" (click)="onResetFilters()">
+        Reset Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Results List -->
+  @if (results().length === 0) {
+    <div class="card empty-state stack">
+      <div class="empty-icon-dot"></div>
+      <h3>No dogs match your current filters</h3>
+      <p class="muted">
+        Try widening the search radius, choosing different temperaments, or clearing your search term.
+      </p>
+      <div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="onResetFilters()">
+          Show All Nearby Dogs
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="grid-2 dogs-grid">
+      @for (item of results(); track item.dog.id) {
+        <article class="card dog-card stack">
+          <!-- Dog Card Header -->
+          <div class="dog-card-header row" style="justify-content: space-between; align-items: flex-start;">
+            <div class="row dog-identity" style="gap: 0.75rem;">
+              <div class="dog-avatar-initial">
+                @if (item.dog.photoUrl) {
+                  <img
+                    [src]="item.dog.photoUrl"
+                    [alt]="item.dog.name"
+                    style="width:2.85rem;height:2.85rem;object-fit:cover;border-radius:8px;display:block;flex-shrink:0;"
+                  />
+                } @else {
+                  {{ item.dog.name.charAt(0) }}
+                }
+              </div>
+              <div class="dog-title-block">
+                <h3 class="dog-name">{{ item.dog.name }}</h3>
+                <span class="dog-breed-subtitle">{{ item.breed.name }}</span>
+              </div>
+            </div>
+
+            <span [class]="'badge ' + getTemperamentBadgeClass(item.dog.temperament)">
+              {{ item.dog.temperament }}
+            </span>
+          </div>
+
+          <!-- Dog Info Badges / Chips -->
+          <div class="dog-chips-row row">
+            <span class="chip">{{ item.dog.size }}</span>
+            <span class="chip">{{ item.dog.sex }}</span>
+            <span class="chip">{{ item.ageLabel }}</span>
+            <span class="chip chip-subtle">{{ item.dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
+          </div>
+
+          <!-- Location & Owner Meta -->
+          <div class="dog-meta-footer row" style="justify-content: space-between;">
+            <div class="distance-badge">
+              <strong>~{{ item.distanceKm }} km</strong>
+              <span class="muted">({{ item.owner.neighborhood }})</span>
+            </div>
+
+            <div class="owner-link-block">
+              <span class="muted">Owner: </span>
+              <a [routerLink]="['/users', item.owner.id]" class="owner-name-link">
+                {{ item.owner.firstName }} {{ item.owner.lastName }}
+              </a>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="dog-actions-row row">
+            <a class="btn btn-primary btn-sm flex-1" [routerLink]="['/dogs', item.dog.id]">
+              View Profile
+            </a>
+            <button
+              type="button"
+              class="btn btn-sm btn-subtle"
+              (click)="onMessageOwner(item.owner.id)"
+              title="Send a message to owner"
+            >
+              Message
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-accent"
+              (click)="onInvitePlaydate(item.owner.id)"
+              title="Invite to a dog playdate"
+            >
+              Playdate
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

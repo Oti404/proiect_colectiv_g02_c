@@ -1,0 +1,211 @@
+.dog-detail-wrapper {
+  gap: 1.25rem;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.navigation-row {
+  margin-bottom: 0.25rem;
+}
+
+.detail-hero-card {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-surface-subtle) 100%);
+}
+
+.dog-title-group {
+  align-items: center;
+}
+
+.dog-detail-avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  .avatar-icon {
+    font-size: 2.2rem;
+  }
+
+  .avatar-initial {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .dog-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+}
+
+.badge-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.dog-main-name {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.dog-main-subtitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.temperament-pill {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+}
+
+.dog-highlights {
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.chip-item {
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.chip-distance {
+  background: var(--color-primary-subtle);
+  border-color: #cce7d8;
+  color: var(--color-primary);
+}
+
+.action-buttons-row {
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-subtle);
+  align-items: center;
+}
+
+.block-btn {
+  margin-left: auto;
+}
+
+.block-confirmation {
+  margin-left: auto;
+}
+
+/* Breed Card */
+.breed-info-card, .owner-info-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+}
+
+.section-icon {
+  font-size: 1.2rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.breed-tags-row {
+  gap: 0.5rem;
+}
+
+.care-tips-box {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+
+  .tips-label {
+    font-size: 0.86rem;
+    color: var(--color-text-main);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .tips-content {
+    font-size: 0.92rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+}
+
+/* Owner Card */
+.owner-card-inner {
+  gap: 1rem;
+}
+
+.owner-identity-block {
+  align-items: center;
+}
+
+.owner-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.owner-full-name {
+  font-size: 1.05rem;
+  color: var(--color-text-main);
+}
+
+.owner-location {
+  font-size: 0.85rem;
+}
+
+.owner-bio {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 600px) {
+  .hero-top {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-buttons-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .owner-card-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

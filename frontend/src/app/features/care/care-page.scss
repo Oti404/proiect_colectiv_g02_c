@@ -1,0 +1,196 @@
+.care-page-wrapper {
+  gap: 1.5rem;
+}
+
+.care-header-card {
+  padding: 1.5rem 1.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.badge-tag {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 0.92rem;
+  margin-top: 0.25rem;
+}
+
+.dog-selector-field {
+  min-width: 220px;
+
+  .dog-select {
+    padding: 0.55rem 0.85rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+}
+
+/* Daily tip card */
+.daily-tip-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-primary-subtle) 100%);
+  border: 1px solid #cce7d8;
+}
+
+.tip-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.weather-badge {
+  font-size: 0.82rem;
+  padding: 0.3rem 0.75rem;
+}
+
+.dog-traits-chips {
+  gap: 0.4rem;
+}
+
+.chip-item {
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.tip-body {
+  padding: 1.15rem;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.tip-headline {
+  font-size: 1.05rem;
+  color: var(--color-primary);
+}
+
+.tip-advice {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.breed-guidance-box {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+
+.medical-disclaimer-box {
+  padding: 0.6rem 0.85rem;
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+}
+
+/* Middle & Bottom Grids */
+.care-middle-grid, .care-bottom-grid {
+  gap: 1.25rem;
+}
+
+.care-subcard {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.subcard-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* Reminders */
+.reminder-list {
+  gap: 0.65rem;
+}
+
+.reminder-item {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.reminder-title {
+  font-size: 0.95rem;
+}
+
+/* Weight Chart */
+.chart-container {
+  padding: 0.5rem 0;
+}
+
+.weight-svg-chart {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+/* Health Records History */
+.record-filter-chips {
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.records-history-list {
+  gap: 0.65rem;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.record-item {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.badge-type {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+}
+
+.record-entry-title {
+  font-size: 0.95rem;
+}
+
+.record-notes {
+  font-size: 0.86rem;
+  margin: 0.25rem 0 0;
+}
+
+@media (max-width: 700px) {
+  .header-inner-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+}

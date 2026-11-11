@@ -1,0 +1,164 @@
+<section class="stack places-page-wrapper">
+  <!-- Places Header & Search Filters -->
+  <header class="card places-header-card stack">
+    <div class="row header-top-row" style="justify-content: space-between; align-items: flex-start;">
+      <div>
+        <div class="badge-tag">
+          <span class="tag-dot"></span>
+          <span>Cluj Directory</span>
+        </div>
+        <h1 class="page-title">Dog-Friendly Places</h1>
+        <p class="muted subtitle">
+          Curated directory of dog parks, fenced runs, pet-welcoming cafes, veterinary clinics, and pet shops.
+        </p>
+      </div>
+      <span class="badge badge-info directory-badge">Offline Directory Mode</span>
+    </div>
+
+    <!-- Filters and Search Input -->
+    <div class="row filter-controls-row" style="justify-content: space-between; align-items: center;">
+      <div class="row category-chips-row">
+        @for (opt of categoryOptions; track opt.value) {
+          <button
+            type="button"
+            [class]="activeCategory() === opt.value ? 'btn btn-primary btn-sm' : 'btn btn-subtle btn-sm'"
+            (click)="setCategory(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <div class="field places-search-field">
+        <input
+          id="places-search"
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          placeholder="Search name or neighborhood..."
+          aria-label="Search name or neighborhood"
+        />
+      </div>
+    </div>
+  </header>
+
+  @if (filteredPlaces().length === 0) {
+    <section class="card empty-state stack">
+      <div class="empty-icon-dot"></div>
+      <h2 style="margin: 0; font-size: 1.35rem;">No Matching Places</h2>
+      <p class="muted">Try selecting another category or clearing your search term.</p>
+      <div>
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          (click)="setCategory('ALL'); searchQuery.set('')"
+        >
+          Reset Place Filters
+        </button>
+      </div>
+    </section>
+  } @else {
+    <div class="grid-2 places-main-grid" style="align-items: start;">
+      <!-- Places List Left Column -->
+      <section class="card places-list-panel stack">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h2 class="section-title">Places ({{ filteredPlaces().length }})</h2>
+          <span class="muted" style="font-size: 0.82rem;">Click to inspect details</span>
+        </div>
+
+        <ul class="stack places-items-list" style="list-style: none; padding: 0; margin: 0;">
+          @for (place of filteredPlaces(); track place.id) {
+            @let isSelected = selectedPlace()?.id === place.id;
+            <li>
+              <button
+                type="button"
+                class="place-item-card stack"
+                [class.selected-place]="isSelected"
+                (click)="selectPlace(place.id)"
+              >
+                <div class="row" style="justify-content: space-between; align-items: center;">
+                  <strong class="place-name">{{ place.name }}</strong>
+                  <span class="badge badge-info place-type-badge">{{ formatPlaceType(place.type) }}</span>
+                </div>
+                <div class="muted place-location-meta" style="font-size: 0.86rem;">
+                  {{ place.neighborhood }}
+                  @if (place.address) {
+                    <span> · {{ place.address }}</span>
+                  }
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Selected Place Details Right Column -->
+      @if (selectedPlace(); as place) {
+        <section class="card place-details-panel stack">
+          <div class="row" style="justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div class="badge-tag">
+                <span class="tag-dot"></span>
+                <span>Location Profile</span>
+              </div>
+              <h2 class="place-detail-title">{{ place.name }}</h2>
+              <p class="muted place-detail-neighborhood">Cluj-Napoca · <strong>{{ place.neighborhood }}</strong></p>
+            </div>
+            <div class="row" style="gap: 0.35rem;">
+              <span class="badge badge-info">{{ formatPlaceType(place.type) }}</span>
+              <span class="badge badge-source">{{ place.source }}</span>
+            </div>
+          </div>
+
+          <div class="stack place-info-box" style="gap: 0.5rem;">
+            <div class="info-row">
+              <strong>Address:</strong>
+              <span>{{ place.address ?? 'See coordinates below' }}</span>
+            </div>
+            @if (place.openingHours) {
+              <div class="info-row">
+                <strong>Hours:</strong>
+                <span>{{ place.openingHours }}</span>
+              </div>
+            }
+            @if (place.phone) {
+              <div class="info-row">
+                <strong>Phone:</strong>
+                <span>{{ place.phone }}</span>
+              </div>
+            }
+            @if (place.website) {
+              <div class="info-row">
+                <strong>Website:</strong>
+                <a [href]="place.website" target="_blank" rel="noopener noreferrer" class="place-website-link">
+                  {{ place.website }} &rarr;
+                </a>
+              </div>
+            }
+            <div class="muted coords-meta" style="font-size: 0.82rem; margin-top: 0.25rem;">
+              GPS Coordinates: {{ place.latitude }}, {{ place.longitude }}
+            </div>
+          </div>
+
+          <div class="row place-action-buttons" style="gap: 0.65rem;">
+            <a
+              class="btn btn-subtle btn-sm"
+              [href]="getDirectionsUrl(place)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open External Directions &rarr;
+            </a>
+            <a
+              class="btn btn-primary btn-sm"
+              routerLink="/events/new"
+              [queryParams]="{ placeId: place.id, visibility: 'PUBLIC', type: 'GROUP_WALK' }"
+            >
+              Create Event Here
+            </a>
+          </div>
+        </section>
+      }
+    </div>
+  }
+</section>

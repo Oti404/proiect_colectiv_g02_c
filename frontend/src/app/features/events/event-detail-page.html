@@ -1,0 +1,374 @@
+@if (eventView(); as ev) {
+  <section class="stack event-detail-wrapper">
+    <div class="navigation-row">
+      <a class="btn btn-sm btn-subtle" routerLink="/events">
+        &larr; Back to Events
+      </a>
+    </div>
+
+    <!-- Main Event Hero Card -->
+    <div class="card event-hero-card stack">
+      <div class="event-hero-top row" style="justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div class="badge-tag">
+            <span>📅 Community Activity</span>
+          </div>
+          <h1 class="event-title">{{ ev.title }}</h1>
+          <div class="event-time-highlight">
+            <span class="icon">🕒</span>
+            <span>{{ ev.startsAt | date: 'fullDate' }} · {{ ev.startsAt | date: 'shortTime' }} – {{ ev.endsAt | date: 'shortTime' }}</span>
+          </div>
+        </div>
+
+        <div class="row event-status-badges" style="gap: 0.35rem;">
+          <span class="badge badge-type">{{ ev.type }}</span>
+          <span class="badge badge-info">{{ ev.visibility }}</span>
+          <span class="badge" [class.badge-success]="ev.status === 'ACTIVE'" [class.badge-danger]="ev.status === 'CANCELLED'">
+            {{ ev.status }}
+          </span>
+        </div>
+      </div>
+
+      @if (ev.status === 'CANCELLED') {
+        <div class="alert-error">
+          ⚠️ This event has been cancelled by the organizer. Invitations and RSVPs are closed.
+        </div>
+      }
+
+      @if (ev.description) {
+        <div class="event-desc-box">
+          <p>{{ ev.description }}</p>
+        </div>
+      }
+
+      <!-- Metadata summary -->
+      <div class="event-meta-grid grid-2">
+        <div class="meta-card stack">
+          <span class="meta-label">📍 Meeting Location</span>
+          <strong class="meta-val">
+            @if (ev.place) {
+              {{ ev.place.name }}
+              @if (ev.place.address) {
+                <span class="muted" style="font-weight: normal;">({{ ev.place.address }})</span>
+              }
+            } @else {
+              {{ ev.locationText ?? 'Not specified' }}
+            }
+          </strong>
+        </div>
+
+        <div class="meta-card stack">
+          <span class="meta-label">👤 Organized By</span>
+          <strong class="meta-val">
+            @if (ev.organizer) {
+              <a [routerLink]="['/users', ev.organizer.id]" class="organizer-link">
+                {{ ev.organizer.firstName }} {{ ev.organizer.lastName }}
+              </a>
+              <span class="muted" style="font-weight: normal;"> ({{ ev.organizer.neighborhood }})</span>
+            } @else {
+              <span class="muted">Deleted user</span>
+            }
+          </strong>
+        </div>
+
+        <div class="meta-card stack" style="grid-column: 1 / -1;">
+          <div class="row" style="justify-content: space-between; align-items: baseline;">
+            <span class="meta-label">🐾 Participating Capacity</span>
+            @if (ev.isFull) {
+              <span class="badge badge-danger">EVENT FULL</span>
+            }
+          </div>
+          <div class="capacity-bar-text">
+            <strong>{{ ev.goingDogsCount }}</strong>
+            @if (ev.maxParticipants !== null) {
+              <span> of {{ ev.maxParticipants }} dogs confirmed GOING</span>
+            } @else {
+              <span> dogs confirmed GOING (Unlimited capacity)</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Organizer Actions -->
+      <div class="row event-organizer-actions">
+        @if (ev.isOrganizer) {
+          @if (ev.status === 'ACTIVE') {
+            <a class="btn btn-sm btn-subtle" [routerLink]="['/events', ev.id, 'edit']">
+              ✏️ Edit Event
+            </a>
+            @if (confirmingCancel()) {
+              <div class="row" style="gap: 0.4rem;">
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  (click)="onConfirmCancelEvent(ev.id)"
+                >
+                  Confirm Cancel Event
+                </button>
+                <button type="button" class="btn btn-subtle btn-sm" (click)="confirmingCancel.set(false)">
+                  Keep Event
+                </button>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="btn btn-subtle btn-sm text-danger"
+                (click)="confirmingCancel.set(true)"
+              >
+                Cancel Event
+              </button>
+            }
+          }
+        } @else if (ev.organizer) {
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            (click)="onMessageOrganizer(ev.organizer.id)"
+          >
+            💬 Message Organizer
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (actionMessage()) {
+      <div class="alert-success">{{ actionMessage() }}</div>
+    }
+    @if (actionError()) {
+      <div class="alert-error">{{ actionError() }}</div>
+    }
+
+    <!-- Playdate Invitation Box (if current user invited) -->
+    @if (ev.currentUserInvitation; as inv) {
+      @if (ev.status === 'ACTIVE' && inv.status !== 'ACCEPTED') {
+        <div class="card invitation-card stack">
+          <div class="row" style="justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div class="badge-tag">
+                <span>💌 Direct Invitation</span>
+              </div>
+              <h2 style="margin: 0; font-size: 1.15rem;">You are invited to this Playdate!</h2>
+            </div>
+            <span
+              class="badge"
+              [class.badge-warn]="inv.status === 'PENDING'"
+              [class.badge-danger]="inv.status === 'DECLINED'"
+            >
+              Status: {{ inv.status }}
+            </span>
+          </div>
+
+          @if (myDogs().length === 0) {
+            <p class="muted">
+              Add at least one dog in <a routerLink="/profile">My Profile</a> before accepting an invitation.
+            </p>
+          } @else {
+            <p class="muted" style="font-size: 0.9rem;">
+              Select which of your dog(s) will attend this playdate:
+            </p>
+            <div class="row invite-dog-selector">
+              @for (dog of myDogs(); track dog.id) {
+                <label class="row dog-select-pill">
+                  <input
+                    type="checkbox"
+                    [checked]="isInviteDogSelected(dog.id)"
+                    (change)="toggleInviteDog(dog.id)"
+                  />
+                  <span>🐕 <strong>{{ dog.name }}</strong> ({{ dog.size }})</span>
+                </label>
+              }
+            </div>
+            <div class="row" style="gap: 0.5rem; margin-top: 0.25rem;">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                [disabled]="ev.isFull"
+                (click)="onAcceptInvitation(ev.id)"
+              >
+                Accept with Selected Dog(s)
+              </button>
+              <button
+                type="button"
+                class="btn btn-subtle btn-sm"
+                (click)="onDeclineInvitation(ev.id)"
+              >
+                Decline
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- RSVP with My Dogs -->
+    @if (canUserRsvp()) {
+      <div class="card rsvp-management-card stack">
+        <div class="row" style="gap: 0.5rem; align-items: center;">
+          <span style="font-size: 1.2rem;">🐕</span>
+          <h2 class="section-title">RSVP with My Dogs</h2>
+        </div>
+
+        @if (myDogs().length === 0) {
+          <p class="muted">
+            You have no registered dogs yet. <a routerLink="/profile">Add a dog in your profile</a> to RSVP.
+          </p>
+        } @else {
+          <div class="stack rsvp-items-stack">
+            @for (dog of myDogs(); track dog.id) {
+              @let status = getMyDogRsvpStatus(dog.id);
+              <div class="row rsvp-dog-row" style="justify-content: space-between; align-items: center;">
+                <div class="row" style="gap: 0.65rem; align-items: center;">
+                  <span class="dog-ico">🐕</span>
+                  <div>
+                    <strong class="dog-rsvp-name">{{ dog.name }}</strong>
+                    <span class="muted" style="font-size: 0.82rem;"> · Status: {{ status ?? 'Not responded' }}</span>
+                  </div>
+                </div>
+
+                <div class="row rsvp-buttons-group">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-subtle"
+                    [class.btn-primary]="status === 'GOING'"
+                    [disabled]="ev.isFull && status !== 'GOING'"
+                    (click)="onDogRsvp(ev.id, dog.id, 'GOING')"
+                  >
+                    ✓ Going
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-subtle"
+                    [class.btn-primary]="status === 'MAYBE'"
+                    (click)="onDogRsvp(ev.id, dog.id, 'MAYBE')"
+                  >
+                    ? Maybe
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-subtle"
+                    [class.btn-primary]="status === 'NOT_GOING'"
+                    (click)="onDogRsvp(ev.id, dog.id, 'NOT_GOING')"
+                  >
+                    ✕ Not Going
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Participating Dogs List -->
+    <div class="card participants-card stack">
+      <div class="row" style="gap: 0.5rem; align-items: center;">
+        <span style="font-size: 1.2rem;">🐾</span>
+        <h2 class="section-title">
+          Participating Dogs ({{ ev.participants.length }} responses · {{ ev.goingDogsCount }} confirmed GOING)
+        </h2>
+      </div>
+
+      @if (ev.participants.length === 0) {
+        <p class="muted" style="margin: 0;">No dog RSVPs yet. Be the first to join!</p>
+      } @else {
+        <div class="stack participant-list">
+          @for (p of ev.participants; track p.rsvp.id) {
+            <div class="row participant-item" style="justify-content: space-between; align-items: center;">
+              <div class="row" style="gap: 0.75rem; align-items: center;">
+                <span class="part-avatar">🐕</span>
+                <div>
+                  <a [routerLink]="['/dogs', p.dog.id]" class="dog-link">
+                    <strong>{{ p.dog.name }}</strong>
+                  </a>
+                  <span class="muted" style="font-size: 0.84rem;">
+                    ({{ p.breed.name }}, {{ p.dog.size }}, {{ p.dog.temperament }}) · Owner:
+                    <a [routerLink]="['/users', p.owner.id]" class="owner-link">
+                      {{ p.owner.firstName }} {{ p.owner.lastName }}
+                    </a>
+                  </span>
+                </div>
+              </div>
+
+              <span
+                class="badge"
+                [class.badge-success]="p.rsvp.status === 'GOING'"
+                [class.badge-warn]="p.rsvp.status === 'MAYBE'"
+                [class.badge-danger]="p.rsvp.status === 'NOT_GOING'"
+              >
+                {{ p.rsvp.status }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Owner Invitations (for private playdates or organizers) -->
+    @if (ev.invitations.length > 0 || (ev.isOrganizer && ev.status === 'ACTIVE')) {
+      <div class="card stack invitations-management-card">
+        <div class="row" style="gap: 0.5rem; align-items: center;">
+          <span style="font-size: 1.2rem;">💌</span>
+          <h2 class="section-title">Owner Invitations ({{ ev.invitations.length }})</h2>
+        </div>
+
+        @if (ev.invitations.length > 0) {
+          <div class="stack invitations-list">
+            @for (invItem of ev.invitations; track invItem.invitation.id) {
+              <div class="row inv-item" style="justify-content: space-between; align-items: center;">
+                <a [routerLink]="['/users', invItem.user.id]" class="owner-link">
+                  <strong>{{ invItem.user.firstName }} {{ invItem.user.lastName }}</strong>
+                  <span class="muted"> ({{ invItem.user.neighborhood }})</span>
+                </a>
+                <span
+                  class="badge"
+                  [class.badge-warn]="invItem.invitation.status === 'PENDING'"
+                  [class.badge-success]="invItem.invitation.status === 'ACCEPTED'"
+                  [class.badge-danger]="invItem.invitation.status === 'DECLINED'"
+                >
+                  {{ invItem.invitation.status }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (ev.isOrganizer && ev.status === 'ACTIVE' && invitableUsers().length > 0) {
+          <div class="stack additional-invites-block">
+            <strong style="font-size: 0.92rem;">Invite Additional Cluj Owners:</strong>
+            <div class="grid-2 checkboxes-grid">
+              @for (user of invitableUsers(); track user.id) {
+                <label class="row invite-checkbox-label">
+                  <input
+                    type="checkbox"
+                    [checked]="isExtraInviteSelected(user.id)"
+                    (change)="toggleExtraInvite(user.id)"
+                  />
+                  <span>{{ user.firstName }} {{ user.lastName }} ({{ user.neighborhood }})</span>
+                </label>
+              }
+            </div>
+            <div>
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                [disabled]="extraInviteUserIds().length === 0"
+                (click)="onSendAdditionalInvites(ev.id)"
+              >
+                Send Invitations
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+} @else {
+  <section class="card empty-state stack">
+    <div class="empty-icon">📅❓</div>
+    <h1 style="margin: 0; font-size: 1.4rem;">Event Not Found or Private</h1>
+    <p class="muted">This event does not exist or is a private playdate you are not invited to.</p>
+    <div>
+      <a class="btn btn-primary btn-sm" routerLink="/events">&larr; Back to Events</a>
+    </div>
+  </section>
+}

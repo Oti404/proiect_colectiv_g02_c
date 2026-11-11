@@ -1,0 +1,188 @@
+<section class="stack event-form-wrapper">
+  <div class="navigation-row">
+    <a class="btn btn-sm btn-subtle" [routerLink]="isEditMode() ? ['/events', id()] : ['/events']">
+      &larr; Back
+    </a>
+  </div>
+
+  @if (unauthorizedEdit()) {
+    <div class="card stack empty-state">
+      <div class="empty-icon">🚫</div>
+      <h1 style="margin: 0; font-size: 1.35rem;">Cannot Edit Event</h1>
+      <p class="muted">
+        Only the event organizer has permission to modify event details or cancel this activity.
+      </p>
+      <div>
+        <a class="btn btn-primary btn-sm" routerLink="/events">Back to Events</a>
+      </div>
+    </div>
+  } @else {
+    <div class="card form-container-card stack">
+      <div class="form-header">
+        <div class="badge-tag">
+          <span>📅 {{ isEditMode() ? 'Modify Activity' : 'New Activity' }}</span>
+        </div>
+        <h1 class="page-title">{{ isEditMode() ? 'Edit Event Details' : 'Organize an Event or Playdate' }}</h1>
+        <p class="muted" style="margin-top: 0.25rem;">
+          Connect dogs for socialization, energy release, and community play in Cluj-Napoca.
+        </p>
+      </div>
+
+      @if (formError()) {
+        <div class="alert-error">{{ formError() }}</div>
+      }
+
+      <form class="stack" [formGroup]="eventForm" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="ev-title">Event Title *</label>
+          <input
+            id="ev-title"
+            type="text"
+            formControlName="title"
+            placeholder="e.g. Afternoon Playdate in Parcul Central"
+          />
+          @if (eventForm.controls.title.touched && eventForm.controls.title.invalid) {
+            <span class="error-text">Event title is required.</span>
+          }
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="ev-visibility">Visibility *</label>
+            <select
+              id="ev-visibility"
+              formControlName="visibility"
+              [attr.disabled]="isEditMode() ? true : null"
+              (change)="onVisibilityChange()"
+            >
+              <option value="PUBLIC">PUBLIC (discoverable by everyone)</option>
+              <option value="PRIVATE">PRIVATE (playdate, invited owners only)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ev-type">Event Type *</label>
+            <select id="ev-type" formControlName="type">
+              <option value="PLAYDATE">Playdate</option>
+              <option value="GROUP_WALK">Group Walk</option>
+              <option value="BREED_MEETUP">Breed Meetup</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="ev-start">Start Time *</label>
+            <input id="ev-start" type="datetime-local" formControlName="startsAt" />
+          </div>
+
+          <div class="field">
+            <label for="ev-end">End Time *</label>
+            <input id="ev-end" type="datetime-local" formControlName="endsAt" />
+          </div>
+
+          <div class="field">
+            <label for="ev-capacity">Max Dogs Capacity (optional)</label>
+            <input
+              id="ev-capacity"
+              type="number"
+              min="1"
+              formControlName="maxParticipants"
+              placeholder="Unlimited"
+            />
+          </div>
+
+          @if (currentVisibility() === 'PUBLIC') {
+            <div class="field">
+              <label for="ev-place">Public Place *</label>
+              <select id="ev-place" formControlName="placeId">
+                @for (place of places(); track place.id) {
+                  <option [value]="place.id">{{ place.name }} ({{ place.neighborhood }})</option>
+                }
+              </select>
+            </div>
+          } @else {
+            <div class="field">
+              <label for="ev-location">Private Location Description *</label>
+              <input
+                id="ev-location"
+                type="text"
+                formControlName="locationText"
+                placeholder="e.g. Fenced area in Parcul Central"
+              />
+            </div>
+          }
+        </div>
+
+        <div class="field">
+          <label for="ev-desc">Description</label>
+          <textarea
+            id="ev-desc"
+            rows="3"
+            formControlName="description"
+            placeholder="Mention requirements, dog temperament suitability, items to bring..."
+          ></textarea>
+        </div>
+
+        @if (!isEditMode()) {
+          <!-- Organizer Dog RSVP -->
+          <div class="card subcard stack">
+            <h3 style="margin: 0; font-size: 1.05rem;">My Participating Dogs (marked GOING)</h3>
+            <p class="muted" style="margin: 0; font-size: 0.86rem;">
+              Choose which of your dogs will attend this activity:
+            </p>
+
+            @if (myDogs().length === 0) {
+              <span class="muted">
+                You have no dogs yet. You can still organize and <a routerLink="/profile">add a dog</a> later.
+              </span>
+            } @else {
+              <div class="row rsvp-dogs-row">
+                @for (dog of myDogs(); track dog.id) {
+                  <label class="row dog-select-pill">
+                    <input
+                      type="checkbox"
+                      [checked]="isDogSelected(dog.id)"
+                      (change)="toggleMyDog(dog.id)"
+                    />
+                    <span>🐕 <strong>{{ dog.name }}</strong> ({{ dog.size }})</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Private Invitations Picker -->
+          <div class="card subcard stack">
+            <div class="row" style="justify-content: space-between; align-items: baseline;">
+              <h3 style="margin: 0; font-size: 1.05rem;">
+                Invite Owners ({{ selectedInviteUserIds().length }} selected)
+              </h3>
+              <span class="muted" style="font-size: 0.82rem;">Private playdates are visible only to invitees</span>
+            </div>
+
+            <div class="grid-2 checkboxes-grid">
+              @for (user of otherUsers(); track user.id) {
+                <label class="row invite-checkbox-label">
+                  <input
+                    type="checkbox"
+                    [checked]="isUserInvited(user.id)"
+                    (change)="toggleInviteUser(user.id)"
+                  />
+                  <span>{{ user.firstName }} {{ user.lastName }} ({{ user.neighborhood }})</span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="row form-footer-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ isEditMode() ? 'Save Changes' : 'Create Event' }}
+          </button>
+          <a class="btn btn-subtle" [routerLink]="isEditMode() ? ['/events', id()] : ['/events']">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  }
+</section>

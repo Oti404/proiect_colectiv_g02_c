@@ -1,0 +1,276 @@
+@if (currentUser(); as user) {
+  <section class="stack my-profile-wrapper">
+    <!-- User Personal Details Edit Card -->
+    <div class="card profile-edit-card stack">
+      <div class="row" style="justify-content: space-between; align-items: flex-start;">
+        <div class="row" style="gap: 1rem; align-items: center;">
+          <div class="profile-main-avatar">
+            {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
+          </div>
+          <div>
+            <div class="badge-tag">
+              <span class="tag-dot"></span>
+              <span>Account Settings</span>
+            </div>
+            <h1 class="page-title">{{ user.firstName }} {{ user.lastName }}</h1>
+            <p class="muted location-meta">
+              Approximate Zone: <strong>{{ user.neighborhood }}</strong> (Cluj-Napoca)
+            </p>
+          </div>
+        </div>
+        <span class="badge badge-info">Active Demo Session</span>
+      </div>
+
+      <div class="session-info-bar">
+        <span class="muted" style="font-size: 0.84rem;">
+          Email: <strong>{{ user.email }}</strong> · Approx. Coordinates: {{ user.approxLatitude }}, {{ user.approxLongitude }}
+        </span>
+      </div>
+
+      @if (profileMessage()) {
+        <div class="alert-success">{{ profileMessage() }}</div>
+      }
+      @if (profileError()) {
+        <div class="alert-error">{{ profileError() }}</div>
+      }
+
+      <form class="stack profile-form" [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+        <div class="grid-2 form-row">
+          <div class="field">
+            <label for="prof-first">First Name *</label>
+            <input id="prof-first" type="text" formControlName="firstName" />
+            @if (profileForm.controls.firstName.touched && profileForm.controls.firstName.invalid) {
+              <span class="error-text">First name is required.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="prof-last">Last Name *</label>
+            <input id="prof-last" type="text" formControlName="lastName" />
+            @if (profileForm.controls.lastName.touched && profileForm.controls.lastName.invalid) {
+              <span class="error-text">Last name is required.</span>
+            }
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="prof-neighborhood">Approximate Neighborhood *</label>
+            <select id="prof-neighborhood" formControlName="neighborhood">
+              @for (area of neighborhoods; track area) {
+                <option [value]="area">{{ area }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="prof-bio">Bio &amp; Dog Preferences</label>
+          <textarea
+            id="prof-bio"
+            rows="3"
+            placeholder="Tell other dog owners about yourself and what playdates your dogs enjoy..."
+            formControlName="bio"
+          ></textarea>
+        </div>
+
+        <div class="form-submit-row">
+          <button type="submit" class="btn btn-primary">Save Profile Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- My Dogs Section -->
+    <div class="card my-dogs-section stack">
+      <div class="section-title-row row" style="justify-content: space-between; align-items: center;">
+        <div class="row" style="gap: 0.5rem; align-items: center;">
+          <h2 class="section-title">My Dogs ({{ myDogs().length }})</h2>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="onOpenAddDog()">
+          + Add New Dog
+        </button>
+      </div>
+
+      @if (dogActionMessage()) {
+        <div class="alert-success">{{ dogActionMessage() }}</div>
+      }
+
+      <!-- Dog Form (Add / Edit) -->
+      @if (showDogForm()) {
+        <form
+          class="card dog-editor-form stack"
+          [formGroup]="dogForm"
+          (ngSubmit)="onSubmitDog()"
+        >
+          <div class="form-header row" style="justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 1.1rem;">
+              {{ editingDogId() ? 'Edit Dog Information' : 'Add a New Dog' }}
+            </h3>
+            <span class="muted" style="font-size: 0.82rem;">* Required fields</span>
+          </div>
+
+          @if (dogFormError()) {
+            <div class="alert-error">{{ dogFormError() }}</div>
+          }
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="dog-name">Dog Name *</label>
+              <input id="dog-name" type="text" placeholder="e.g. Rex, Luna" formControlName="name" />
+              @if (dogForm.controls.name.touched && dogForm.controls.name.invalid) {
+                <span class="error-text">Dog name is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="dog-breed">Breed *</label>
+              <select id="dog-breed" formControlName="breedId">
+                @for (breed of breeds(); track breed.id) {
+                  <option [value]="breed.id">{{ breed.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-sex">Sex *</label>
+              <select id="dog-sex" formControlName="sex">
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-size">Size *</label>
+              <select id="dog-size" formControlName="size">
+                <option value="SMALL">Small (&lt; 10 kg)</option>
+                <option value="MEDIUM">Medium (10–25 kg)</option>
+                <option value="LARGE">Large (25–45 kg)</option>
+                <option value="GIANT">Giant (45+ kg)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-temp">Temperament *</label>
+              <select id="dog-temp" formControlName="temperament">
+                <option value="FRIENDLY">Friendly</option>
+                <option value="PLAYFUL">Playful</option>
+                <option value="SHY">Shy</option>
+                <option value="REACTIVE">Reactive</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dog-birth">Birth Date (optional)</label>
+              <input id="dog-birth" type="date" formControlName="birthDate" />
+            </div>
+          </div>
+
+          <label class="row checkbox-row" style="gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" formControlName="neutered" />
+            <span style="font-size: 0.9rem;">Neutered / Spayed</span>
+          </label>
+
+          <div class="row form-actions" style="gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm">
+              {{ editingDogId() ? 'Save Changes' : 'Save Dog' }}
+            </button>
+            <button type="button" class="btn btn-subtle btn-sm" (click)="onCancelDogForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      @if (myDogs().length === 0) {
+        <div class="empty-state-mini">
+          <p class="muted">You have not registered any dogs yet. Add one to participate in Events, Care, and Community Search.</p>
+        </div>
+      } @else {
+        <div class="grid-2 my-dogs-grid">
+          @for (dog of myDogs(); track dog.id) {
+            <div class="card my-dog-card stack">
+              <div class="row" style="justify-content: space-between; align-items: flex-start;">
+                <div class="row" style="gap: 0.65rem; align-items: center;">
+                  <div class="mini-dog-initial">
+                    @if (dog.photoUrl) {
+                      <img
+                        [src]="dog.photoUrl"
+                        [alt]="dog.name"
+                        style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:8px;display:block;flex-shrink:0;"
+                      />
+                    } @else {
+                      {{ dog.name.charAt(0) }}
+                    }
+                  </div>
+                  <div>
+                    <strong class="dog-card-name">{{ dog.name }}</strong>
+                    <div class="muted" style="font-size: 0.82rem;">{{ getBreedName(dog.breedId) }}</div>
+                  </div>
+                </div>
+                <span class="badge badge-info">{{ dog.temperament }}</span>
+              </div>
+
+              <div class="row chips-compact">
+                <span class="chip">{{ dog.size }}</span>
+                <span class="chip">{{ dog.sex }}</span>
+                <span class="chip">{{ getDogAge(dog.birthDate) }}</span>
+                <span class="chip chip-subtle">{{ dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
+              </div>
+
+              <div class="row my-dog-actions">
+                <a class="btn btn-subtle btn-sm" [routerLink]="['/dogs', dog.id]">
+                  View Details
+                </a>
+                <button type="button" class="btn btn-subtle btn-sm" (click)="onOpenEditDog(dog)">
+                  Edit
+                </button>
+                @if (confirmingDeleteDogId() === dog.id) {
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    (click)="onConfirmDeleteDog(dog.id)"
+                  >
+                    Confirm Remove
+                  </button>
+                  <button type="button" class="btn btn-subtle btn-sm" (click)="onCancelDeleteDog()">
+                    Cancel
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn btn-subtle btn-sm text-danger"
+                    (click)="onRequestDeleteDog(dog.id)"
+                  >
+                    Remove
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Blocked Users Section -->
+    <div class="card blocked-section stack">
+      <div class="row" style="gap: 0.5rem; align-items: center;">
+        <h2 class="section-title">Blocked Users ({{ blockedUsers().length }})</h2>
+      </div>
+
+      @if (blockedUsers().length === 0) {
+        <p class="muted" style="margin: 0; font-size: 0.9rem;">You have not blocked any users.</p>
+      } @else {
+        <div class="stack blocked-list">
+          @for (blocked of blockedUsers(); track blocked.id) {
+            <div class="row blocked-item" style="justify-content: space-between;">
+              <span class="blocked-name">{{ blocked.firstName }} {{ blocked.lastName }} ({{ blocked.neighborhood }})</span>
+              <button
+                type="button"
+                class="btn btn-subtle btn-sm"
+                (click)="onUnblockUser(blocked.id)"
+              >
+                Unblock
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+}

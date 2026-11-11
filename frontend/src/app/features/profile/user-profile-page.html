@@ -1,0 +1,153 @@
+@if (profileView(); as view) {
+  <section class="stack user-profile-wrapper">
+    <div class="navigation-row">
+      <a class="btn btn-sm btn-subtle" routerLink="/search">
+        &larr; Back to Search
+      </a>
+    </div>
+
+    @if (view.isBlockedEitherWay) {
+      <div class="card blocked-state-card stack">
+        <div class="blocked-icon">🚫</div>
+        <h1 style="margin: 0; font-size: 1.35rem;">Profile Unavailable</h1>
+        <p class="muted">
+          This profile is hidden because of a mutual or personal block relationship.
+        </p>
+        @if (view.isBlockedByMe) {
+          <div>
+            <button type="button" class="btn btn-sm btn-primary" (click)="onUnblock(view.user.id)">
+              Unblock {{ view.user.firstName }}
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- User Hero Profile Card -->
+      <div class="card user-hero-card stack">
+        <div class="user-hero-top row" style="justify-content: space-between; align-items: flex-start;">
+          <div class="row user-identity-group" style="gap: 1.15rem;">
+            <div class="user-large-avatar">
+              {{ view.user.firstName.charAt(0) }}{{ view.user.lastName.charAt(0) }}
+            </div>
+            <div>
+              <div class="badge-tag">
+                <span>👤 Community Member</span>
+              </div>
+              <h1 class="user-display-name">{{ view.user.firstName }} {{ view.user.lastName }}</h1>
+              <span class="muted user-location-meta">
+                📍 Cluj-Napoca · <strong>{{ view.user.neighborhood }}</strong>
+                @if (!view.isOwnProfile) {
+                  <span> · ~{{ view.distanceKm }} km from you</span>
+                }
+              </span>
+            </div>
+          </div>
+
+          <!-- User Actions -->
+          @if (view.isOwnProfile) {
+            <a class="btn btn-primary btn-sm" routerLink="/profile">
+              ✏️ Edit My Profile
+            </a>
+          } @else {
+            <div class="row profile-action-buttons">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                (click)="onSendMessage(view.user.id)"
+              >
+                💬 Send Message
+              </button>
+              <button
+                type="button"
+                class="btn btn-accent btn-sm"
+                (click)="onInviteToPlaydate(view.user.id)"
+              >
+                🤝 Invite to Playdate
+              </button>
+
+              @if (confirmingBlock()) {
+                <div class="row" style="gap: 0.35rem;">
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    (click)="onConfirmBlock(view.user.id)"
+                  >
+                    Confirm Block
+                  </button>
+                  <button type="button" class="btn btn-sm btn-subtle" (click)="confirmingBlock.set(false)">
+                    Cancel
+                  </button>
+                </div>
+              } @else {
+                <button type="button" class="btn btn-sm btn-subtle" (click)="confirmingBlock.set(true)">
+                  🚫 Block
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        @if (view.user.bio) {
+          <div class="user-bio-card">
+            <p>{{ view.user.bio }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Dogs Owned by this User -->
+      <div class="card user-dogs-section stack">
+        <div class="section-title-row row" style="justify-content: space-between;">
+          <div class="row" style="gap: 0.45rem; align-items: center;">
+            <span style="font-size: 1.25rem;">🐕</span>
+            <h2 class="section-title">{{ view.user.firstName }}'s Dogs ({{ view.dogs.length }})</h2>
+          </div>
+        </div>
+
+        @if (view.dogs.length === 0) {
+          <div class="empty-state-mini">
+            <p class="muted">No dogs listed on this profile yet.</p>
+          </div>
+        } @else {
+          <div class="grid-2 user-dogs-grid">
+            @for (item of view.dogs; track item.dog.id) {
+              <article class="card dog-subcard stack">
+                <div class="row" style="justify-content: space-between; align-items: flex-start;">
+                  <div class="row" style="gap: 0.65rem; align-items: center;">
+                    <div class="mini-dog-avatar">🐕</div>
+                    <div>
+                      <strong class="dog-card-name">{{ item.dog.name }}</strong>
+                      <div class="muted" style="font-size: 0.82rem;">{{ item.breedName }}</div>
+                    </div>
+                  </div>
+                  <span class="badge badge-info">{{ item.dog.temperament }}</span>
+                </div>
+
+                <div class="row chips-compact">
+                  <span class="chip">{{ item.dog.size }}</span>
+                  <span class="chip">{{ item.dog.sex }}</span>
+                  <span class="chip">{{ item.ageLabel }}</span>
+                  <span class="chip chip-subtle">{{ item.dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
+                </div>
+
+                <div class="row dog-subcard-actions" style="margin-top: 0.35rem;">
+                  <a class="btn btn-primary btn-sm full-width" [routerLink]="['/dogs', item.dog.id]">
+                    View Dog Profile &rarr;
+                  </a>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+} @else {
+  <section class="card empty-state stack" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 2.5rem 1.5rem;">
+    <div style="font-size: 2.5rem;">👤❓</div>
+    <h1 style="margin: 0; font-size: 1.4rem;">User Not Found</h1>
+    <p class="muted">The requested user profile does not exist in demo data.</p>
+    <div>
+      <a class="btn btn-primary btn-sm" routerLink="/search">Back to Search</a>
+    </div>
+  </section>
+}

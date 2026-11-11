@@ -1,0 +1,178 @@
+<section class="stack messages-page-wrapper">
+  <!-- Messages Header & New Chat Bar -->
+  <div class="card messages-header-card row" style="justify-content: space-between; align-items: center;">
+    <div>
+      <div class="badge-tag">
+        <span class="tag-dot"></span>
+        <span>Community Chat</span>
+      </div>
+      <h1 class="page-title">Messages</h1>
+      <span class="muted subtitle">
+        1-on-1 direct messages between Cluj dog owners ({{ totalUnread() }} unread in inbox)
+      </span>
+    </div>
+
+    <!-- Quick Start New Chat -->
+    <div class="row start-chat-row" style="gap: 0.5rem; align-items: center;">
+      <select
+        aria-label="Start conversation with user"
+        class="user-select-field"
+        [ngModel]="selectedNewChatUserId()"
+        (ngModelChange)="selectedNewChatUserId.set($event)"
+      >
+        <option value="">Start new chat with...</option>
+        @for (user of otherUsers(); track user.id) {
+          <option [value]="user.id">{{ user.firstName }} {{ user.lastName }} ({{ user.neighborhood }})</option>
+        }
+      </select>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        [disabled]="!selectedNewChatUserId()"
+        (click)="onStartNewChat()"
+      >
+        Open Chat
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Two-Column Layout -->
+  <div class="chat-main-grid">
+    <!-- Conversation Sidebar -->
+    <aside class="card conv-sidebar stack">
+      <div class="row" style="justify-content: space-between; align-items: center;">
+        <h2 class="sidebar-title">Conversations ({{ conversations().length }})</h2>
+      </div>
+
+      @if (conversations().length === 0) {
+        <div class="empty-conversations">
+          <p class="muted">No active conversations yet. Start chatting with any dog owner!</p>
+        </div>
+      } @else {
+        <div class="stack conv-list-stack">
+          @for (conv of conversations(); track conv.conversation.id) {
+            <a
+              class="conv-thread-item stack"
+              [class.active-thread]="conv.conversation.id === id()"
+              [routerLink]="['/messages', conv.conversation.id]"
+            >
+              <div class="row conv-item-top" style="justify-content: space-between; align-items: center;">
+                <div class="row" style="gap: 0.5rem; align-items: center;">
+                  <span class="user-thread-avatar">{{ getParticipantNames(conv).charAt(0) }}</span>
+                  <strong class="conv-user-name">{{ getParticipantNames(conv) }}</strong>
+                </div>
+                @if (conv.unreadCount > 0) {
+                  <span class="badge badge-accent">{{ conv.unreadCount }} new</span>
+                }
+              </div>
+
+              @if (conv.lastMessage; as last) {
+                <div class="conv-last-msg-row row" style="justify-content: space-between;">
+                  <span class="last-msg-text">{{ last.content }}</span>
+                  <span class="last-msg-time">{{ last.sentAt | date: 'shortTime' }}</span>
+                </div>
+              } @else {
+                <span class="muted" style="font-size: 0.8rem;">No messages exchanged yet</span>
+              }
+            </a>
+          }
+        </div>
+      }
+    </aside>
+
+    <!-- Active Chat Window -->
+    <div class="card chat-window-card stack">
+      @if (activeConversation(); as active) {
+        <!-- Chat Header -->
+        <div class="chat-header-bar row" style="justify-content: space-between; align-items: center;">
+          <div class="row" style="gap: 0.65rem; align-items: center;">
+            <div class="chat-active-avatar">
+              {{ getParticipantNames(active).charAt(0) }}
+            </div>
+            <div>
+              <strong class="active-participant-name">{{ getParticipantNames(active) }}</strong>
+              @if (active.otherParticipants[0]; as other) {
+                <div class="participant-profile-link">
+                  <a [routerLink]="['/users', other.id]">View {{ other.firstName }}'s Profile &rarr;</a>
+                </div>
+              }
+            </div>
+          </div>
+          <span class="badge badge-success">Active Thread</span>
+        </div>
+
+        <!-- Chat Messages Stream -->
+        <div class="messages-stream stack">
+          @if (activeMessages().length === 0) {
+            <div class="empty-thread-state">
+              <p class="muted">No messages in this conversation yet. Say hello and suggest a dog playdate!</p>
+            </div>
+          } @else {
+            @for (msg of activeMessages(); track msg.id) {
+              @let isMine = msg.senderId === currentUser()?.id;
+              <div
+                class="message-bubble-wrapper"
+                [class.bubble-mine]="isMine"
+                [class.bubble-other]="!isMine"
+              >
+                <div class="bubble-inner stack">
+                  <div class="row bubble-meta" style="justify-content: space-between; gap: 0.65rem;">
+                    <span class="bubble-sender">{{ getSenderLabel(msg.senderId) }}</span>
+                    <span class="bubble-time">{{ msg.sentAt | date: 'shortTime' }}</span>
+                  </div>
+                  <p class="bubble-text">{{ msg.content }}</p>
+                  @if (msg.isSimulatedReply) {
+                    <span class="badge badge-warn simulated-badge">
+                      Demo simulated reply
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        @if (sendError()) {
+          <div class="alert-error">{{ sendError() }}</div>
+        }
+
+        <!-- Message Composer Form -->
+        <form class="stack composer-form" (ngSubmit)="onSendMessage(active.conversation.id)">
+          <div class="field">
+            <textarea
+              id="msg-input"
+              rows="2"
+              name="draftMessage"
+              placeholder="Type your message to {{ getParticipantNames(active) }}..."
+              [ngModel]="draftMessage()"
+              (ngModelChange)="draftMessage.set($event)"
+            ></textarea>
+          </div>
+
+          <div class="row composer-actions" style="justify-content: space-between; align-items: center;">
+            <label class="row simulated-checkbox" style="gap: 0.45rem; cursor: pointer;">
+              <input
+                type="checkbox"
+                name="simulateReply"
+                [ngModel]="includeSimulatedReply()"
+                (ngModelChange)="includeSimulatedReply.set($event)"
+              />
+              <span class="muted" style="font-size: 0.85rem;">Simulate instant reply for testing</span>
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">
+              Send Message &rarr;
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="empty-selection-state stack">
+          <div class="empty-icon-dot"></div>
+          <h3>Select a conversation</h3>
+          <p class="muted">
+            Select a conversation on the left or start a new chat above.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
