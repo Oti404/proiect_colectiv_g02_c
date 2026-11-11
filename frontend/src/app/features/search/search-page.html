@@ -136,7 +136,11 @@
           <div class="dog-card-header row" style="justify-content: space-between; align-items: flex-start;">
             <div class="row dog-identity" style="gap: 0.75rem;">
               <div class="dog-avatar-initial">
-                {{ item.dog.name.charAt(0) }}
+                @if (item.dog.photoUrl) {
+                  <img [src]="item.dog.photoUrl" [alt]="item.dog.name" class="dog-avatar-img" />
+                } @else {
+                  {{ item.dog.name.charAt(0) }}
+                }
               </div>
               <div class="dog-title-block">
                 <h3 class="dog-name">{{ item.dog.name }}</h3>

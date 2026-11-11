@@ -11,7 +11,11 @@
       <div class="hero-top row" style="justify-content: space-between; align-items: flex-start;">
         <div class="row dog-title-group" style="gap: 1rem;">
           <div class="dog-detail-avatar">
-            <span class="avatar-initial">{{ info.dog.name.charAt(0) }}</span>
+            @if (info.dog.photoUrl) {
+              <img [src]="info.dog.photoUrl" [alt]="info.dog.name" class="dog-avatar-img" />
+            } @else {
+              <span class="avatar-initial">{{ info.dog.name.charAt(0) }}</span>
+            }
           </div>
           <div>
             <div class="badge-tag">
