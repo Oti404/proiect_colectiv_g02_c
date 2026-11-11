@@ -4,7 +4,7 @@
     <div class="search-header-row row" style="justify-content: space-between; align-items: flex-start;">
       <div>
         <div class="badge-tag">
-          <span class="icon">🐾</span>
+          <span class="tag-dot"></span>
           <span>Community Discovery</span>
         </div>
         <h1 class="page-title">Discover Nearby Dogs</h1>
@@ -24,11 +24,10 @@
       <div class="field search-field-main">
         <label for="search-query">Search dog name, breed, or neighborhood</label>
         <div class="input-with-icon">
-          <span class="field-icon">🔍</span>
           <input
             id="search-query"
             type="text"
-            placeholder="e.g. Luna, Husky, Gheorgheni..."
+            placeholder="Search by dog name, breed, or neighborhood (e.g. Luna, Husky, Gheorgheni)..."
             [value]="filters().query"
             (input)="updateQuery($event)"
           />
@@ -110,7 +109,7 @@
       </label>
 
       <button type="button" class="btn btn-sm btn-subtle" (click)="onResetFilters()">
-        ↺ Reset Filters
+        Reset Filters
       </button>
     </div>
   </div>
@@ -118,7 +117,7 @@
   <!-- Results List -->
   @if (results().length === 0) {
     <div class="card empty-state stack">
-      <div class="empty-icon">🐶</div>
+      <div class="empty-icon-dot"></div>
       <h3>No dogs match your current filters</h3>
       <p class="muted">
         Try widening the search radius, choosing different temperaments, or clearing your search term.
@@ -136,8 +135,8 @@
           <!-- Dog Card Header -->
           <div class="dog-card-header row" style="justify-content: space-between; align-items: flex-start;">
             <div class="row dog-identity" style="gap: 0.75rem;">
-              <div class="dog-avatar">
-                <span class="dog-avatar-icon">🐕</span>
+              <div class="dog-avatar-initial">
+                {{ item.dog.name.charAt(0) }}
               </div>
               <div class="dog-title-block">
                 <h3 class="dog-name">{{ item.dog.name }}</h3>
@@ -155,13 +154,12 @@
             <span class="chip">{{ item.dog.size }}</span>
             <span class="chip">{{ item.dog.sex }}</span>
             <span class="chip">{{ item.ageLabel }}</span>
-            <span class="chip chip-subtle">{{ item.dog.neutered ? '✓ Neutered' : 'Not neutered' }}</span>
+            <span class="chip chip-subtle">{{ item.dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
           </div>
 
           <!-- Location & Owner Meta -->
           <div class="dog-meta-footer row" style="justify-content: space-between;">
             <div class="distance-badge">
-              <span class="pin-icon">📍</span>
               <strong>~{{ item.distanceKm }} km</strong>
               <span class="muted">({{ item.owner.neighborhood }})</span>
             </div>
@@ -185,7 +183,7 @@
               (click)="onMessageOwner(item.owner.id)"
               title="Send a message to owner"
             >
-              💬 Message
+              Message
             </button>
             <button
               type="button"
@@ -193,7 +191,7 @@
               (click)="onInvitePlaydate(item.owner.id)"
               title="Invite to a dog playdate"
             >
-              🤝 Playdate
+              Playdate
             </button>
           </div>
         </article>

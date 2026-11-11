@@ -9,11 +9,12 @@
           </div>
           <div>
             <div class="badge-tag">
-              <span>⚙️ Account Settings</span>
+              <span class="tag-dot"></span>
+              <span>Account Settings</span>
             </div>
             <h1 class="page-title">{{ user.firstName }} {{ user.lastName }}</h1>
             <p class="muted location-meta">
-              📍 Approximate Zone: <strong>{{ user.neighborhood }}</strong> (Cluj-Napoca)
+              Approximate Zone: <strong>{{ user.neighborhood }}</strong> (Cluj-Napoca)
             </p>
           </div>
         </div>
@@ -81,7 +82,6 @@
     <div class="card my-dogs-section stack">
       <div class="section-title-row row" style="justify-content: space-between; align-items: center;">
         <div class="row" style="gap: 0.5rem; align-items: center;">
-          <span style="font-size: 1.35rem;">🐾</span>
           <h2 class="section-title">My Dogs ({{ myDogs().length }})</h2>
         </div>
         <button type="button" class="btn btn-primary btn-sm" (click)="onOpenAddDog()">
@@ -102,7 +102,7 @@
         >
           <div class="form-header row" style="justify-content: space-between;">
             <h3 style="margin: 0; font-size: 1.1rem;">
-              {{ editingDogId() ? '✏️ Edit Dog Information' : '🐕 Add a New Dog' }}
+              {{ editingDogId() ? 'Edit Dog Information' : 'Add a New Dog' }}
             </h3>
             <span class="muted" style="font-size: 0.82rem;">* Required fields</span>
           </div>
@@ -187,7 +187,7 @@
             <div class="card my-dog-card stack">
               <div class="row" style="justify-content: space-between; align-items: flex-start;">
                 <div class="row" style="gap: 0.65rem; align-items: center;">
-                  <div class="mini-dog-avatar">🐕</div>
+                  <div class="mini-dog-initial">{{ dog.name.charAt(0) }}</div>
                   <div>
                     <strong class="dog-card-name">{{ dog.name }}</strong>
                     <div class="muted" style="font-size: 0.82rem;">{{ getBreedName(dog.breedId) }}</div>
@@ -200,7 +200,7 @@
                 <span class="chip">{{ dog.size }}</span>
                 <span class="chip">{{ dog.sex }}</span>
                 <span class="chip">{{ getDogAge(dog.birthDate) }}</span>
-                <span class="chip chip-subtle">{{ dog.neutered ? '✓ Neutered' : 'Not neutered' }}</span>
+                <span class="chip chip-subtle">{{ dog.neutered ? 'Neutered' : 'Not neutered' }}</span>
               </div>
 
               <div class="row my-dog-actions">
@@ -208,7 +208,7 @@
                   View Details
                 </a>
                 <button type="button" class="btn btn-subtle btn-sm" (click)="onOpenEditDog(dog)">
-                  ✏️ Edit
+                  Edit
                 </button>
                 @if (confirmingDeleteDogId() === dog.id) {
                   <button
@@ -240,7 +240,6 @@
     <!-- Blocked Users Section -->
     <div class="card blocked-section stack">
       <div class="row" style="gap: 0.5rem; align-items: center;">
-        <span style="font-size: 1.2rem;">🚫</span>
         <h2 class="section-title">Blocked Users ({{ blockedUsers().length }})</h2>
       </div>
 

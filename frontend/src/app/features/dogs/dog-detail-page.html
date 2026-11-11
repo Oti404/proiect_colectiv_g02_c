@@ -11,11 +11,12 @@
       <div class="hero-top row" style="justify-content: space-between; align-items: flex-start;">
         <div class="row dog-title-group" style="gap: 1rem;">
           <div class="dog-detail-avatar">
-            <span class="avatar-icon">🐕</span>
+            <span class="avatar-initial">{{ info.dog.name.charAt(0) }}</span>
           </div>
           <div>
             <div class="badge-tag">
-              <span>🐾 Dog Profile</span>
+              <span class="tag-dot"></span>
+              <span>Dog Profile</span>
             </div>
             <h1 class="dog-main-name">{{ info.dog.name }}</h1>
             <span class="muted dog-main-subtitle">
@@ -32,16 +33,16 @@
       <!-- Quick Characteristics -->
       <div class="row dog-highlights">
         <span class="chip-item">
-          {{ info.dog.neutered ? '✓ Neutered / Spayed' : 'Not neutered' }}
+          {{ info.dog.neutered ? 'Neutered / Spayed' : 'Not neutered' }}
         </span>
         @if (info.dog.birthDate) {
-          <span class="chip-item">🎂 Born: {{ info.dog.birthDate }}</span>
+          <span class="chip-item">Born: {{ info.dog.birthDate }}</span>
         } @else {
           <span class="chip-item">Birth date unknown</span>
         }
         @if (info.distanceKm !== null) {
           <span class="chip-item chip-distance">
-            📍 ~{{ info.distanceKm }} km away ({{ info.owner.neighborhood }})
+            ~{{ info.distanceKm }} km away ({{ info.owner.neighborhood }})
           </span>
         }
       </div>
@@ -50,10 +51,10 @@
       <div class="row action-buttons-row">
         @if (isOwnDog()) {
           <a class="btn btn-primary" routerLink="/profile">
-            ✏️ Edit in My Profile
+            Edit in My Profile
           </a>
           <a class="btn btn-subtle" routerLink="/care">
-            🩺 View Health &amp; Care
+            View Health &amp; Care
           </a>
         } @else {
           <button
@@ -61,14 +62,14 @@
             class="btn btn-primary"
             (click)="onSendMessage(info.owner.id)"
           >
-            💬 Send Message
+            Send Message
           </button>
           <button
             type="button"
             class="btn btn-accent"
             (click)="onInviteToPlaydate(info.owner.id)"
           >
-            🤝 Invite to Playdate
+            Invite to Playdate
           </button>
 
           @if (confirmingBlock()) {
@@ -86,7 +87,7 @@
             </div>
           } @else {
             <button type="button" class="btn btn-sm btn-subtle block-btn" (click)="confirmingBlock.set(true)">
-              🚫 Block Owner
+              Block Owner
             </button>
           }
         }
@@ -96,18 +97,17 @@
     <!-- Breed & Care Information Card -->
     <div class="card breed-info-card stack">
       <div class="section-title-row row" style="gap: 0.5rem; align-items: center;">
-        <span class="section-icon">📖</span>
         <h2 class="section-title">Breed Characteristics: {{ info.breed.name }}</h2>
       </div>
 
       <div class="row breed-tags-row">
         <span class="chip-item">Typical Size: {{ info.breed.size }}</span>
-        <span class="chip-item">⚡ Energy Level: {{ info.breed.energyLevel }} / 5</span>
+        <span class="chip-item">Energy Level: {{ info.breed.energyLevel }} / 5</span>
         @if (info.breed.heatSensitive) {
-          <span class="badge badge-warn">⚠️ Heat Sensitive</span>
+          <span class="badge badge-warn">Heat Sensitive</span>
         }
         @if (info.breed.breathingIssues) {
-          <span class="badge badge-warn">⚠️ Breathing Sensitivity</span>
+          <span class="badge badge-warn">Breathing Sensitivity</span>
         }
       </div>
 
@@ -120,7 +120,6 @@
     <!-- Owner Information Card -->
     <div class="card owner-info-card stack">
       <div class="section-title-row row" style="gap: 0.5rem; align-items: center;">
-        <span class="section-icon">👤</span>
         <h2 class="section-title">About the Owner</h2>
       </div>
 
@@ -131,7 +130,7 @@
           </div>
           <div>
             <strong class="owner-full-name">{{ info.owner.firstName }} {{ info.owner.lastName }}</strong>
-            <div class="muted owner-location">📍 Cluj-Napoca · {{ info.owner.neighborhood }}</div>
+            <div class="muted owner-location">Cluj-Napoca · {{ info.owner.neighborhood }}</div>
             @if (info.owner.bio) {
               <p class="owner-bio">{{ info.owner.bio }}</p>
             }
@@ -146,7 +145,7 @@
   </section>
 } @else {
   <section class="card empty-state stack">
-    <div class="empty-icon">🐕❓</div>
+    <div class="empty-icon-dot"></div>
     <h1 style="margin: 0; font-size: 1.4rem;">Dog Not Found</h1>
     <p class="muted">This dog does not exist or belongs to a user you have blocked.</p>
     <div>

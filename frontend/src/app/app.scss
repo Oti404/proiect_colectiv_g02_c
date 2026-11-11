@@ -1,12 +1,12 @@
 .demo-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: 0 1px 3px rgba(31, 39, 35, 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-inner {
@@ -28,27 +28,27 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 1.25rem;
+  gap: 0.5rem;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: var(--color-text-main);
+  color: var(--color-green-dark);
   text-decoration: none;
   letter-spacing: -0.02em;
 
   &:hover {
     text-decoration: none;
-    color: var(--color-primary);
   }
 
-  .brand-icon {
-    font-size: 1.35rem;
-    line-height: 1;
-    transform: rotate(-8deg);
-    display: inline-block;
+  .brand-badge-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-mint), var(--color-primary));
+    box-shadow: 0 0 0 3px rgba(56, 178, 125, 0.25);
   }
 
   .brand-text {
-    background: linear-gradient(135deg, var(--color-primary), #3b9770);
+    background: linear-gradient(135deg, var(--color-green-dark) 20%, var(--color-primary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -61,7 +61,7 @@
   padding: 0.15rem 0.5rem;
 }
 
-/* Navigation */
+/* Navigation with emerald active indicators */
 .main-nav {
   display: flex;
   align-items: center;
@@ -69,31 +69,32 @@
   background: var(--color-surface-subtle);
   padding: 0.25rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-border);
 }
 
 .nav-item {
   position: relative;
-  padding: 0.4rem 0.75rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 6px;
   color: var(--color-text-muted);
   font-size: 0.88rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   transition: all var(--transition-fast);
 
   &:hover {
-    color: var(--color-text-main);
-    background: rgba(255, 255, 255, 0.6);
+    color: var(--color-green-dark);
+    background: rgba(255, 255, 255, 0.8);
     text-decoration: none;
   }
 
   &.active {
     background: var(--color-surface);
     color: var(--color-primary);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 5px rgba(30, 126, 81, 0.12);
+    border: 1px solid #c2ded0;
   }
 }
 
@@ -101,11 +102,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.2rem;
-  height: 1.2rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
   padding: 0 0.35rem;
   border-radius: var(--radius-full);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
 
@@ -130,10 +131,10 @@
 .switcher-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 0.2rem 0.5rem 0.2rem 0.25rem;
+  border: 1.5px solid var(--color-border);
+  padding: 0.2rem 0.6rem 0.2rem 0.25rem;
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-sm);
 }
@@ -146,36 +147,37 @@
 }
 
 .avatar-mini {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 1.85rem;
+  height: 1.85rem;
   border-radius: 50%;
-  background: var(--color-primary-light);
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-mint-light));
   color: var(--color-primary);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid #c2ded0;
 }
 
 .user-name-mini {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--color-text-main);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--color-green-dark);
 }
 
 .account-select {
   border: none;
   background: transparent;
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.84rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
   padding: 0.15rem 0.25rem;
   outline: none;
 
   &:hover {
-    color: var(--color-text-main);
+    color: var(--color-green-dark);
   }
 }
 
@@ -185,22 +187,22 @@
 }
 
 .btn-subtle {
-  background: transparent;
+  background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text-muted);
 
   &:hover:not(:disabled) {
     background: var(--color-surface-subtle);
-    color: var(--color-text-main);
+    color: var(--color-green-dark);
   }
 }
 
 .main-content {
   padding-top: 1.5rem;
-  padding-bottom: 3rem;
+  padding-bottom: 3.5rem;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 860px) {
   .header-inner {
     flex-direction: column;

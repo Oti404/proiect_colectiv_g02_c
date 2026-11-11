@@ -2,11 +2,12 @@
   <!-- Feed Header -->
   <header class="card feed-header-card stack">
     <div class="badge-tag">
-      <span>🐕 Community Moments</span>
+      <span class="tag-dot"></span>
+      <span>Community Moments</span>
     </div>
     <h1 class="page-title">Community Social Feed</h1>
     <p class="muted subtitle">
-      Share daily walk memories, park updates, and adorable dog photos across Cluj-Napoca.
+      Share daily walk memories, park updates, and dog photos across Cluj-Napoca.
       Mutual blocks are automatically respected.
     </p>
   </header>
@@ -14,8 +15,7 @@
   <!-- Create Post Card -->
   <section class="card post-creator-card stack">
     <div class="row" style="gap: 0.5rem; align-items: center;">
-      <span style="font-size: 1.25rem;">✍️</span>
-      <h2 class="creator-title">Share with the Pack</h2>
+      <h2 class="creator-title">Share with the Community</h2>
     </div>
 
     @if (postError(); as error) {
@@ -27,7 +27,7 @@
 
     <form class="stack" [formGroup]="postForm" (ngSubmit)="onCreatePost()">
       <div class="field">
-        <label for="feed-content">What happened on today's adventure?</label>
+        <label for="feed-content">What happened on today's walk?</label>
         <textarea
           id="feed-content"
           rows="3"
@@ -42,7 +42,7 @@
           <select id="feed-dog" formControlName="dogId">
             <option value="">No dog tagged</option>
             @for (dog of myDogs(); track dog.id) {
-              <option [value]="dog.id">🐕 {{ dog.name }}</option>
+              <option [value]="dog.id">{{ dog.name }}</option>
             }
           </select>
         </div>
@@ -52,7 +52,7 @@
           <select id="feed-image" formControlName="imageUrl">
             <option value="">No photo</option>
             @for (img of demoImages; track img.id) {
-              <option [value]="img.dataUri">📷 {{ img.label }}</option>
+              <option [value]="img.dataUri">{{ img.label }}</option>
             }
           </select>
         </div>
@@ -71,7 +71,7 @@
 
       <div class="post-submit-row">
         <button type="submit" class="btn btn-primary">
-          Publish Post 🐾
+          Publish Post
         </button>
       </div>
     </form>
@@ -80,7 +80,7 @@
   <!-- Feed Posts Stream -->
   @if (posts().length === 0) {
     <section class="card empty-state stack">
-      <div class="empty-icon">🐾📰</div>
+      <div class="empty-icon-dot"></div>
       <h2 style="margin: 0; font-size: 1.35rem;">No Posts Visible</h2>
       <p class="muted">
         There are no community posts to display right now. Share the first post above to start the conversation!
@@ -123,7 +123,7 @@
                   }
                 </div>
                 <div class="muted post-timestamp">
-                  📍 {{ item.author.neighborhood }} · {{ item.post.createdAt | date: 'medium' }}
+                  {{ item.author.neighborhood }} · {{ item.post.createdAt | date: 'medium' }}
                 </div>
               </div>
             </div>
@@ -179,12 +179,12 @@
                 [class]="item.isLikedByMe ? 'btn btn-accent btn-sm like-btn active' : 'btn btn-subtle btn-sm like-btn'"
                 (click)="onToggleLike(item.post.id)"
               >
-                {{ item.isLikedByMe ? '❤️ Liked' : '🤍 Like' }} ({{ item.likeCount }})
+                {{ item.isLikedByMe ? 'Liked' : 'Like' }} ({{ item.likeCount }})
               </button>
             </div>
 
             <span class="muted comment-counter">
-              💬 {{ item.comments.length }} Comment{{ item.comments.length === 1 ? '' : 's' }}
+              {{ item.comments.length }} Comment{{ item.comments.length === 1 ? '' : 's' }}
             </span>
           </div>
 

@@ -4,7 +4,8 @@
     <div class="row header-top-row" style="justify-content: space-between; align-items: flex-start;">
       <div>
         <div class="badge-tag">
-          <span>📍 Cluj Directory</span>
+          <span class="tag-dot"></span>
+          <span>Cluj Directory</span>
         </div>
         <h1 class="page-title">Dog-Friendly Places</h1>
         <p class="muted subtitle">
@@ -34,7 +35,7 @@
           type="text"
           [value]="searchQuery()"
           (input)="onSearchInput($event)"
-          placeholder="🔍 Search name or neighborhood..."
+          placeholder="Search name or neighborhood..."
           aria-label="Search name or neighborhood"
         />
       </div>
@@ -43,7 +44,7 @@
 
   @if (filteredPlaces().length === 0) {
     <section class="card empty-state stack">
-      <div class="empty-icon">📍❓</div>
+      <div class="empty-icon-dot"></div>
       <h2 style="margin: 0; font-size: 1.35rem;">No Matching Places</h2>
       <p class="muted">Try selecting another category or clearing your search term.</p>
       <div>
@@ -80,7 +81,7 @@
                   <span class="badge badge-info place-type-badge">{{ formatPlaceType(place.type) }}</span>
                 </div>
                 <div class="muted place-location-meta" style="font-size: 0.86rem;">
-                  📍 {{ place.neighborhood }}
+                  {{ place.neighborhood }}
                   @if (place.address) {
                     <span> · {{ place.address }}</span>
                   }
@@ -97,7 +98,8 @@
           <div class="row" style="justify-content: space-between; align-items: flex-start;">
             <div>
               <div class="badge-tag">
-                <span>📍 Location Profile</span>
+                <span class="tag-dot"></span>
+                <span>Location Profile</span>
               </div>
               <h2 class="place-detail-title">{{ place.name }}</h2>
               <p class="muted place-detail-neighborhood">Cluj-Napoca · <strong>{{ place.neighborhood }}</strong></p>
@@ -129,7 +131,7 @@
               <div class="info-row">
                 <strong>Website:</strong>
                 <a [href]="place.website" target="_blank" rel="noopener noreferrer" class="place-website-link">
-                  {{ place.website }} ↗
+                  {{ place.website }} &rarr;
                 </a>
               </div>
             }
@@ -145,14 +147,14 @@
               target="_blank"
               rel="noopener noreferrer"
             >
-              🗺️ Open External Directions ↗
+              Open External Directions &rarr;
             </a>
             <a
               class="btn btn-primary btn-sm"
               routerLink="/events/new"
               [queryParams]="{ placeId: place.id, visibility: 'PUBLIC', type: 'GROUP_WALK' }"
             >
-              🐾 Create Event Here
+              Create Event Here
             </a>
           </div>
         </section>

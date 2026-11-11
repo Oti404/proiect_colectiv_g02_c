@@ -4,7 +4,7 @@
     <div class="row header-main-row" style="justify-content: space-between; align-items: flex-start;">
       <div>
         <div class="badge-tag">
-          <span class="icon">📅</span>
+          <span class="tag-dot"></span>
           <span>Community Activities</span>
         </div>
         <h1 class="page-title">Events &amp; Playdates</h1>
@@ -67,7 +67,7 @@
   <!-- Events List -->
   @if (displayedEvents().length === 0) {
     <div class="card empty-state stack">
-      <div class="empty-icon">📅🐾</div>
+      <div class="empty-icon-dot"></div>
       <h3>No events in this category yet</h3>
       <p class="muted">
         Create a private playdate or a public group walk to bring dog owners together!
@@ -85,7 +85,6 @@
             <div class="event-title-block">
               <h3 class="event-name">{{ ev.title }}</h3>
               <div class="event-time-meta">
-                <span class="calendar-icon">🕒</span>
                 <span>{{ ev.startsAt | date: 'mediumDate' }}, {{ ev.startsAt | date: 'shortTime' }} – {{ ev.endsAt | date: 'shortTime' }}</span>
               </div>
             </div>
@@ -104,13 +103,12 @@
           <!-- Location & Organizer info -->
           <div class="event-details-meta stack" style="gap: 0.3rem;">
             <div class="meta-item row" style="gap: 0.45rem;">
-              <span class="meta-icon">📍</span>
+              <span class="meta-label">Location:</span>
               <span class="meta-text">{{ getLocationLabel(ev) }}</span>
             </div>
             <div class="meta-item row" style="gap: 0.45rem;">
-              <span class="meta-icon">👤</span>
+              <span class="meta-label">Organizer:</span>
               <span class="meta-text">
-                Organizer:
                 @if (ev.organizer) {
                   <strong>{{ ev.organizer.firstName }} {{ ev.organizer.lastName }}</strong>
                   <span class="muted">({{ ev.organizer.neighborhood }})</span>
@@ -124,7 +122,7 @@
           <!-- Participation Indicators -->
           <div class="row event-participation-row">
             <span class="badge badge-success">
-              🐾 {{ ev.goingDogsCount }}
+              {{ ev.goingDogsCount }}
               @if (ev.maxParticipants !== null) {
                 / {{ ev.maxParticipants }}
               }

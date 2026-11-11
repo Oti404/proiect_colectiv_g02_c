@@ -3,7 +3,8 @@
   <div class="card messages-header-card row" style="justify-content: space-between; align-items: center;">
     <div>
       <div class="badge-tag">
-        <span>💬 Community Chat</span>
+        <span class="tag-dot"></span>
+        <span>Community Chat</span>
       </div>
       <h1 class="page-title">Messages</h1>
       <span class="muted subtitle">
@@ -97,14 +98,13 @@
               }
             </div>
           </div>
-          <span class="badge badge-success">✓ Active Thread</span>
+          <span class="badge badge-success">Active Thread</span>
         </div>
 
         <!-- Chat Messages Stream -->
         <div class="messages-stream stack">
           @if (activeMessages().length === 0) {
             <div class="empty-thread-state">
-              <span class="empty-chat-icon">👋</span>
               <p class="muted">No messages in this conversation yet. Say hello and suggest a dog playdate!</p>
             </div>
           } @else {
@@ -123,7 +123,7 @@
                   <p class="bubble-text">{{ msg.content }}</p>
                   @if (msg.isSimulatedReply) {
                     <span class="badge badge-warn simulated-badge">
-                      🤖 Demo simulated reply
+                      Demo simulated reply
                     </span>
                   }
                 </div>
@@ -166,7 +166,7 @@
         </form>
       } @else {
         <div class="empty-selection-state stack">
-          <div class="empty-icon">💬</div>
+          <div class="empty-icon-dot"></div>
           <h3>Select a conversation</h3>
           <p class="muted">
             Select a conversation on the left or start a new chat above.
