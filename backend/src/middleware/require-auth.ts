@@ -49,7 +49,8 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
  *
  *   const me = currentUser(req);
  */
-export function currentUser(req: Request): AuthUser {
+// Primește orice cerere cu `user` (inclusiv `ValidatedRequest`, unde query-ul are alte tipuri).
+export function currentUser(req: Pick<Request, "user">): AuthUser {
   if (!req.user) {
     // Ajunge aici doar dacă ruta a uitat `requireAuth`.
     throw unauthorized();
