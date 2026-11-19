@@ -44,7 +44,9 @@ API-ul pornește la `http://localhost:3000`. Verificare: `http://localhost:3000/
 | `npm run dev` | Pornește serverul cu reîncărcare automată (`tsx watch`) |
 | `npm run build` | Compilează TypeScript-ul în `dist/` |
 | `npm start` | Rulează varianta compilată (`node dist/server.js`) |
-| `npm test` | Rulează testele (vitest + supertest), fără bază de date |
+| `npm test` | Rulează testele unit (vitest + supertest), fără bază de date |
+| `npm run test:integration` | Rulează testele de integrare pe o bază de test separată (`<db>_test`), creată automat. Cere `docker compose up -d db` |
+| `npm run test:all` | Rulează ambele seturi de teste |
 | `npm run typecheck` | Verifică tipurile în `src/` și `tests/` |
 | `npm run prisma:generate` | Generează clientul Prisma după modificări în `schema.prisma` |
 | `npx prisma migrate dev --name <nume>` | Creează o migrare și aplică modificările în baza de date |
@@ -61,10 +63,13 @@ backend/
 │   ├── migrations/     ← migrările (se urcă în repo)
 │   └── seed.ts         ← datele demo (rase, utilizatori, câini)
 ├── prisma.config.ts    ← configurarea Prisma (conexiunea la baza de date)
-├── tests/              ← teste (vitest + supertest), aceeași structură ca src/
+├── docs/api/           ← documentația endpoint-urilor, câte un fișier pe modul
+├── tests/              ← teste unit (fără bază de date), aceeași structură ca src/
+│   └── integration/    ← teste pe baza de date reală + helpers (createUser, resetDatabase)
 └── src/
     ├── config/env.ts   ← variabilele de mediu, validate la pornire
     ├── routes/         ← definirea endpoint-urilor (+ validare, auth)
+    ├── schemas/        ← schemele zod pentru body / query / params
     ├── controllers/    ← primesc cererea și trimit răspunsul, fără logică
     ├── services/       ← logica aplicației și accesul la baza de date
     ├── middleware/     ← requireAuth, validate, middleware-ul de erori
@@ -78,7 +83,9 @@ backend/
 
 ## Cum se scrie un endpoint
 
-Fiecare modul are trei fișiere: `routes/<modul>.routes.ts` → `controllers/<modul>.controller.ts` → `services/<modul>.service.ts`. Router-ul se montează în `routes/index.ts`. Exemplul complet e `GET /api/health`.
+Fiecare modul are: `schemas/<modul>.schemas.ts` (validare) → `routes/<modul>.routes.ts` → `controllers/<modul>.controller.ts` → `services/<modul>.service.ts`. Router-ul se montează în `routes/index.ts`, iar endpoint-urile se documentează în `docs/api/<modul>.md`. Exemple complete: `GET /api/health` și modulul `auth`.
+
+Ce câmpuri ale unui utilizator se trimit e definit o singură dată, în `services/user-selects.ts`: `selfUserSelect` (utilizatorul despre el însuși), `publicUserSelect` (profil public, fără email), `userSummarySelect` (liste).
 
 ```ts
 // routes/dogs.routes.ts
