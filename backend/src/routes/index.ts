@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { breedsRouter } from "./breeds.routes.js";
+import { dogsRouter } from "./dogs.routes.js";
 import { healthRouter } from "./health.routes.js";
 
 // Toate rutele API, montate sub /api în app.ts.
@@ -6,3 +8,5 @@ import { healthRouter } from "./health.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use("/health", healthRouter);
+apiRouter.use("/breeds", breedsRouter);
+apiRouter.use("/dogs", dogsRouter);
