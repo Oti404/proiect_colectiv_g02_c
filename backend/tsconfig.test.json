@@ -1,0 +1,9 @@
+{
+  // Folosit doar de `npm run typecheck`: verifică tipurile în src/ și în tests/, fără să compileze.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": ["src", "tests"]
+}
