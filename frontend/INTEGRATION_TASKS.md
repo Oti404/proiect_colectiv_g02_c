@@ -2,22 +2,26 @@
 
 **Scopul:** fiecare serviciu din `core/services/` să citească și să scrie prin API, iar la final `DemoStateService` și `core/mock-data/` să dispară. Backend-ul e gata: toate rutele sunt în Swagger, la `http://localhost:3000/api/docs`.
 
-## 📍 Unde suntem
+> Planul stă doar pe ramura `docs/frontend-integration-tasks` și **nu se unește în `main`**. Nu deschideți PR din ramura asta; modulele voastre pornesc din `main`.
 
-| Ce | Cine | Stare |
-|---|---|---|
-| 0 Fundație | Otniel | ✅ în `main` (#27) |
-| 1 Auth și sesiune | Otniel | ✅ în `main` (#28) |
-| 8 Mesagerie | Otniel | ✅ în `main` (#29) |
-| 2 Profil, câini, block, raportări | **Vlad** | 🟢 se poate începe |
-| 3 Căutare | **Vlad** | 🟢 se poate începe |
-| 4 Îngrijire | **Vlad** | 🟢 se poate începe |
-| 5 Evenimente și RSVP | **Tibi** | 🟢 se poate începe |
-| 6 Feed | **Tibi** | 🟢 se poate începe |
-| 7 Hartă / locuri | **Tibi** | 🟢 se poate începe |
-| 9 Final | Otniel | ⏳ după ce intră toate modulele |
+## 📍 Ordinea și starea
 
-**Fundația, auth-ul și mesageria sunt în `main`: Vlad și Tibi pot începe acum.**
+Task-urile se fac **în ordinea de mai jos**. Etapa 1 e gata; în Etapa 2, Vlad și Tibi lucrează **în paralel**, fiecare în ordinea lui; Etapa 3 vine la final.
+
+| Etapa | Pas | Ce | Cine | Stare |
+|---|---|---|---|---|
+| **1** | 1 | Fundație | Otniel | ✅ în `main` (#27) |
+| | 2 | Auth și sesiune | Otniel | ✅ în `main` (#28) |
+| | 3 | Mesagerie | Otniel | ✅ în `main` (#29) |
+| **2** | Vlad 1 | Căutare | Vlad | 🟢 începe acum |
+| | Vlad 2 | Profil, câini, block, raportări | Vlad | după Vlad 1 |
+| | Vlad 3 | Îngrijire | Vlad | după Vlad 2 |
+| | Tibi 1 | Feed | Tibi | 🟢 începe acum |
+| | Tibi 2 | Hartă / locuri | Tibi | după Tibi 1 |
+| | Tibi 3 | Evenimente și RSVP | Tibi | după Tibi 2 (ideal după Vlad 2) |
+| **3** | 4 | Final | Otniel | după toată Etapa 2 |
+
+**De ce ordinea asta:** din Căutare și Câini (Vlad 1, 2) pleacă id-urile reale de câini și utilizatori spre celelalte pagini, deci merg primele. Feed-ul și Harta (Tibi 1, 2) depind puțin de alte module. Evenimentele (Tibi 3) folosesc câinii și utilizatorii reali, așa că e bine să vină după Profil / câini.
 
 ---
 
@@ -53,13 +57,14 @@
 
 Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potrivesc între ele (mock: `dog-luna`, API: UUID). Ca să stricăm cât mai puțin:
 
-- **Vlad începe cu Căutarea și Câinii** (3, apoi 2): de acolo pleacă id-urile reale de câini și utilizatori spre restul paginilor.
-- **Tibi începe cu Feed-ul și Harta** (6, 7), care depind mai puțin de alții, apoi Evenimentele (5).
+- Respectați ordinea din tabelul de sus (Vlad: Căutare → Profil / câini → Îngrijire; Tibi: Feed → Hartă → Evenimente).
 - Un link dintr-o pagină mutată spre una încă pe mock-uri (sau invers) poate da „Not found” până se mută și cealaltă. E acceptabil pe durata tranziției; notați-l în PR.
 
 ---
 
-## 0. Fundație ✅ — Otniel
+# Etapa 1 — gata ✅
+
+## Pasul 1 · Fundație ✅ — Otniel
 
 - [x] `provideHttpClient(withInterceptors([authInterceptor]))` în `app.config.ts`
 - [x] `ApiService` (`core/api/api.service.ts`): prefix `/api`, despachetează `{ data }` și `{ data, meta }` (`getPage<T, M>`), erorile devin `ApiError`
@@ -68,7 +73,7 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [x] Tipurile din Swagger (`npm run api:types` → `core/api/schema.ts`)
 - [x] Exemplul de urmat: `BreedApiService` (`GET /breeds`) + secțiunea din README
 
-## 1. Auth și sesiune ✅ — Otniel
+## Pasul 2 · Auth și sesiune ✅ — Otniel
 
 - [x] `AuthService` real: login, register, logout; la pornire reface sesiunea din token (`GET /auth/me`)
 - [x] `authGuard` (cu `returnUrl`) și `guestGuard` în locul guard-urilor demo
@@ -77,7 +82,28 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [x] Selectorul de cont din header face login real cu contul demo ales
 - [x] Punte temporară: utilizatorul real e oglindit în mock-uri (după email), ca paginile încă nemutate să meargă
 
-## 2. Profil, câini, block, raportări — Vlad
+## Pasul 3 · Mesagerie ✅ — Otniel
+
+- [x] Conversații, mesaje (cursor `before` pentru „Load older”), trimitere, marcare ca citit
+- [x] Polling: mesaje noi la 4 s în conversația deschisă, lista și badge-ul de necitite la 15 s
+- [x] Erorile `BLOCKED`, `CONVERSATION_CLOSED` afișate în chat; scos „simulated reply”
+- [x] Alte pagini deschid un chat cu `/messages?with=<userId>`
+- [x] Punte temporară: id-urile demo sunt traduse în utilizatorul real după nume
+
+---
+
+# Etapa 2 — Vlad și Tibi, în paralel
+
+## Vlad 1 · Căutare
+
+- [ ] `SearchService`: `GET /search/dogs` cu `getPage`, filtrele ca query params (`q`, `breedId`, `size`, `temperament`, `ageGroup`, `neuteredOnly`, `maxDistanceKm`, `page`, `pageSize`). Valorile goale nu se trimit (le scoate `ApiService`)
+- [ ] Paginare din `meta` (`page`, `totalPages`): butoane sau „Load more”
+- [ ] Debounce pe câmpul de text (~300 ms)
+- [ ] `distanceKm`, `ageGroup`, `owner` vin gata din API
+- [ ] Dropdown-ul de rase din `BreedApiService`
+- [ ] Pagina `search`
+
+## Vlad 2 · Profil, câini, block, raportări
 
 - [ ] `UserService`: `GET/PATCH /users/me`, `GET /users/:id` (profil public cu câini; `404` = inexistent sau blocat)
 - [ ] Cartierul: afișat cu `nearestNeighborhood(...)`, trimis la editare cu `coordinatesOf(...)` ca `latitude` / `longitude`
@@ -88,16 +114,7 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [ ] După `PATCH /users/me`, numele din header se actualizează (de discutat cu Otniel: o metodă `AuthService.refreshUser()`)
 - [ ] Pagini: `profile`, `user-profile`, `dog-detail`
 
-## 3. Căutare — Vlad (prima)
-
-- [ ] `SearchService`: `GET /search/dogs` cu `getPage`, filtrele ca query params (`q`, `breedId`, `size`, `temperament`, `ageGroup`, `neuteredOnly`, `maxDistanceKm`, `page`, `pageSize`). Valorile goale nu se trimit (le scoate `ApiService`)
-- [ ] Paginare din `meta` (`page`, `totalPages`): butoane sau „Load more”
-- [ ] Debounce pe câmpul de text (~300 ms)
-- [ ] `distanceKm`, `ageGroup`, `owner` vin gata din API
-- [ ] Dropdown-ul de rase din `BreedApiService`
-- [ ] Pagina `search`
-
-## 4. Îngrijire — Vlad
+## Vlad 3 · Îngrijire
 
 - [ ] `CareService`: `GET/POST /dogs/:id/health-records`, `PATCH/DELETE /dogs/:id/health-records/:recordId`
 - [ ] `GET /dogs/:id/reminders`, `GET /dogs/:id/weight-history` (graficul SVG rămâne, doar datele vin din API), `GET /dogs/:id/daily-tip`
@@ -105,7 +122,23 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [ ] Vremea: API-ul nu are vreme. Eticheta „Demo Weather” se scoate până se decide
 - [ ] Pagina `care`
 
-## 5. Evenimente și RSVP — Tibi
+## Tibi 1 · Feed
+
+- [ ] `FeedService`: `GET /posts` cu `getPage`, `POST /posts`, `DELETE /posts/:id`
+- [ ] Like / unlike: `POST` / `DELETE /posts/:id/like` (contorul se actualizează imediat și revine la eroare)
+- [ ] Comentarii: `GET` / `POST /posts/:id/comments`
+- [ ] Imaginile demo (data-URI SVG) merg în `imageUrl`, maxim 100 KB. Upload real încă nu există
+- [ ] `canDelete`, `isLikedByMe`, `likeCount`, `author`, `dog` vin din API
+- [ ] Pagina `feed`
+
+## Tibi 2 · Hartă / locuri
+
+- [ ] `PlaceService`: `GET /places?type=&q=`, `GET /places/:id` (cu recenzii)
+- [ ] Recenzie: `POST /places/:id/reviews`, doar după un eveniment la care ai participat acolo (`403` altfel, `409` dacă ai scris deja una)
+- [ ] „Create event here” trimite `placeId`-ul real
+- [ ] Pagina `places-map`. În baza locală locurile apar după `npm run osm:import` în `backend/`
+
+## Tibi 3 · Evenimente și RSVP
 
 - [ ] `EventService`: `GET /events?tab=PUBLIC|ORGANIZED|INVITATIONS|ALL`, `GET /events/:id`, `POST /events`, `PATCH /events/:id`, `DELETE /events/:id`, `POST /events/:id/cancel`
 - [ ] Invitații: `POST /events/:id/invitations`, `POST /events/:id/invitations/respond` (la `DECLINED` răspunsul e doar `{ eventId, status }`, nu evenimentul)
@@ -117,31 +150,11 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [ ] „Message organizer” face deja `/messages?with=<organizerId>`
 - [ ] Pagini: `events`, `event-detail`, `event-form`
 
-## 6. Feed — Tibi (primul)
+---
 
-- [ ] `FeedService`: `GET /posts` cu `getPage`, `POST /posts`, `DELETE /posts/:id`
-- [ ] Like / unlike: `POST` / `DELETE /posts/:id/like` (contorul se actualizează imediat și revine la eroare)
-- [ ] Comentarii: `GET` / `POST /posts/:id/comments`
-- [ ] Imaginile demo (data-URI SVG) merg în `imageUrl`, maxim 100 KB. Upload real încă nu există
-- [ ] `canDelete`, `isLikedByMe`, `likeCount`, `author`, `dog` vin din API
-- [ ] Pagina `feed`
+# Etapa 3 — final
 
-## 7. Hartă / locuri — Tibi
-
-- [ ] `PlaceService`: `GET /places?type=&q=`, `GET /places/:id` (cu recenzii)
-- [ ] Recenzie: `POST /places/:id/reviews`, doar după un eveniment la care ai participat acolo (`403` altfel, `409` dacă ai scris deja una)
-- [ ] „Create event here” trimite `placeId`-ul real
-- [ ] Pagina `places-map`. În baza locală locurile apar după `npm run osm:import` în `backend/`
-
-## 8. Mesagerie ✅ — Otniel
-
-- [x] Conversații, mesaje (cursor `before` pentru „Load older”), trimitere, marcare ca citit
-- [x] Polling: mesaje noi la 4 s în conversația deschisă, lista și badge-ul de necitite la 15 s
-- [x] Erorile `BLOCKED`, `CONVERSATION_CLOSED` afișate în chat; scos „simulated reply”
-- [x] Alte pagini deschid un chat cu `/messages?with=<userId>`
-- [x] Punte temporară: id-urile demo sunt traduse în utilizatorul real după nume
-
-## 9. Final — Otniel
+## Pasul 4 · Final — Otniel
 
 - [ ] Se șterg `DemoStateService`, `DemoAuthService`, `core/mock-data/`, „Reset Data” și punțile temporare (din `AuthService` și `MessageService`)
 - [ ] Lista din „Start new chat” (acum din mock-uri): din conversațiile existente / profilul public
@@ -150,14 +163,6 @@ Cât timp unele module sunt pe API și altele pe mock-uri, id-urile nu se potriv
 - [ ] Bug-urile găsite la testul complet, împărțite înapoi pe module
 
 ---
-
-## 👥 Împărțire
-
-| Membru | Taskuri | Ordine |
-|---|---|---|
-| **Otniel** | 0 Fundație ✅ · 1 Auth ✅ · 8 Mesagerie ✅ · 9 Final | 9 la sfârșit |
-| **Vlad** | 2 Profil, câini, block, raportări · 3 Căutare · 4 Îngrijire | 3 → 2 → 4 |
-| **Tibi** | 5 Evenimente și RSVP · 6 Feed · 7 Hartă | 6 → 7 → 5 |
 
 ## ❓ Întrebări deschise
 
