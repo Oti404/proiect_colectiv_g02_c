@@ -26,18 +26,15 @@ export const apiMounts: ReadonlyArray<readonly [string, Router]> = [
   ["/breeds", breedsRouter],
   ["/dogs", dogsRouter],
   ["/auth", authRouter],
+  ["/conversations", conversationsRouter],
+  ["/messages", messagesRouter],
+  ["/users", usersRouter],
+  ["/blocks", blocksRouter],
+  ["/reports", reportsRouter],
 ];
 
 export const apiRouter = Router();
 
-apiRouter.use("/events", eventsRouter);
-apiRouter.use("/search", searchRouter);
-apiRouter.use("/dogs", careRouter);
-apiRouter.use("/breeds", breedsRouter);
-apiRouter.use("/dogs", dogsRouter);
-apiRouter.use("/auth", authRouter);
-apiRouter.use("/conversations", conversationsRouter);
-apiRouter.use("/messages", messagesRouter);
-apiRouter.use("/users", usersRouter);
-apiRouter.use("/blocks", blocksRouter);
-apiRouter.use("/reports", reportsRouter);
+for (const [path, router] of apiMounts) {
+  apiRouter.use(path, router);
+}

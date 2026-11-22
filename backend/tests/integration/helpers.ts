@@ -59,15 +59,15 @@ export async function createBreed(): Promise<{ id: string }> {
   });
 }
 
-/** Creează un câine al lui `owner`. Fără `breedId`, creează și o rasă nouă. */
+/** Creează un câine al lui `owner` (utilizatorul sau doar id-ul lui). Fără `breedId`, creează și o rasă nouă. */
 export async function createDog(
-  owner: TestUser,
+  owner: TestUser | string,
   overrides: Partial<{ name: string; breedId: string }> = {},
 ): Promise<{ id: string; name: string }> {
   const breedId = overrides.breedId ?? (await createBreed()).id;
   return prisma.dog.create({
     data: {
-      ownerId: owner.id,
+      ownerId: typeof owner === "string" ? owner : owner.id,
       breedId,
       name: overrides.name ?? "Rex",
       sex: "MALE",
