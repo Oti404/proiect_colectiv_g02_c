@@ -21,6 +21,15 @@ import {
 import { createPlaceReviewSchemas, getPlaceSchemas, listPlacesSchemas } from "../routes/places.routes.js";
 import { createCommentSchemas, createPostSchemas, listPostsSchemas, postIdParamsSchemas } from "../routes/posts.routes.js";
 import { searchDogsSchemas } from "../routes/search.routes.js";
+import { blockUserSchemas } from "../schemas/blocks.schemas.js";
+import {
+  conversationSchemas,
+  listMessagesSchemas,
+  sendMessageSchemas,
+  startConversationSchemas,
+} from "../schemas/messaging.schemas.js";
+import { createReportSchemas } from "../schemas/reports.schemas.js";
+import { deleteMeSchemas, getUserSchemas, updateMeSchemas } from "../schemas/users.schemas.js";
 import type { RequestSchemas } from "../middleware/validate.js";
 
 /**
@@ -102,9 +111,9 @@ const errorResponse = (description: string) => json(description, ref("Error"));
 const ERRORS = {
   400: errorResponse("Date invalide (`VALIDATION_ERROR`, `BAD_REQUEST`, `INVALID_JSON`)"),
   401: errorResponse("Lipsește token-ul sau e invalid (`UNAUTHORIZED`, `INVALID_TOKEN`, `TOKEN_EXPIRED`)"),
-  403: errorResponse("Resursa nu îți aparține (`FORBIDDEN`)"),
+  403: errorResponse("Nu ai voie (`FORBIDDEN`; la mesaje `BLOCKED`, la ștergerea contului `INVALID_PASSWORD`)"),
   404: errorResponse("Nu există sau e ascunsă din cauza unui block (`NOT_FOUND`)"),
-  409: errorResponse("Conflict cu starea curentă (`CONFLICT`)"),
+  409: errorResponse("Conflict cu starea curentă (`CONFLICT`, `ALREADY_REPORTED`, `CONVERSATION_CLOSED`)"),
 } as const;
 
 type ErrorStatus = keyof typeof ERRORS;
@@ -117,7 +126,13 @@ interface OperationSpec {
   public?: boolean;
   schemas?: RequestSchemas;
   /** Răspunsul de succes. `undefined` înseamnă 204 fără body. */
-  response?: { status: 200 | 201; description: string; schema: JsonSchema };
+  response?: {
+    status: 200 | 201;
+    description: string;
+    schema: JsonSchema;
+    /** Pentru rutele idempotente care răspund 201 la creare și 200 dacă resursa exista deja. */
+    existingDescription?: string;
+  };
   errors?: ErrorStatus[];
 }
 
@@ -127,6 +142,9 @@ function op(spec: OperationSpec): JsonSchema {
 
   const responses: Record<string, unknown> = {};
   if (spec.response) {
+    if (spec.response.existingDescription) {
+      responses[200] = json(spec.response.existingDescription, spec.response.schema);
+    }
     responses[spec.response.status] = json(spec.response.description, spec.response.schema);
   } else {
     responses[204] = { description: "Șters, fără conținut" };
@@ -386,6 +404,50 @@ const components = {
       canDelete: bool,
     }),
     LikeResult: obj({ postId: uuid, likeCount: int, isLikedByMe: bool }),
+
+    PublicProfile: obj({
+      ...publicUserProps,
+      createdAt: dateTime,
+      dogs: arrayOf(
+        obj({
+          id: uuid,
+          name: str,
+          birthDate: nullable(dateTime),
+          sex: sexEnum,
+          size: sizeEnum,
+          temperament: temperamentEnum,
+          neutered: bool,
+          photoUrl: nullable(str),
+          breed: obj({ id: uuid, name: str }),
+        }),
+      ),
+    }),
+    BlockedUser: obj({ user: ref("UserSummary"), createdAt: dateTime }),
+    Report: obj({
+      id: uuid,
+      reportedUserId: nullable(uuid),
+      postId: nullable(uuid),
+      reason: str,
+      status: enumOf("OPEN", "REVIEWED", "DISMISSED"),
+      createdAt: dateTime,
+    }),
+    Message: obj({
+      id: uuid,
+      conversationId: uuid,
+      senderId: { ...nullable(uuid), description: "`null` dacă expeditorul și-a șters contul" },
+      content: str,
+      sentAt: dateTime,
+    }),
+    Conversation: obj({
+      id: uuid,
+      createdAt: dateTime,
+      otherParticipants: {
+        ...arrayOf(ref("UserSummary")),
+        description: "Ceilalți participanți; gol dacă celălalt și-a șters contul",
+      },
+      lastMessage: nullable(ref("Message")),
+      unreadCount: int,
+    }),
   },
 };
 
@@ -761,6 +823,158 @@ const paths = {
   },
 };
 
+Object.assign(paths, {
+  "/users/me": {
+    get: op({
+      tag: "Users",
+      summary: "Profilul meu (la fel ca `/auth/me`)",
+      response: { status: 200, description: "Profilul complet", schema: dataOf(ref("SelfUser")) },
+      errors: [404],
+    }),
+    patch: op({
+      tag: "Users",
+      summary: "Modifică profilul meu",
+      description:
+        "Se trimit doar câmpurile care se schimbă. `bio` / `avatarUrl` cu `null` sau șir gol șterg valoarea. " +
+        "`latitude` și `longitude` se trimit împreună și se rotunjesc la 2 zecimale (~1 km).",
+      schemas: updateMeSchemas,
+      response: { status: 200, description: "Profilul actualizat", schema: dataOf(ref("SelfUser")) },
+    }),
+    delete: op({
+      tag: "Users",
+      summary: "Șterge contul (cere parola)",
+      description:
+        "Evenimentele active organizate de mine trec pe `CANCELLED`; restul datelor se șterg. " +
+        "Mesajele trimise rămân, cu expeditorul `null`. Parolă greșită → `403 INVALID_PASSWORD`.",
+      schemas: deleteMeSchemas,
+      errors: [403, 404],
+    }),
+  },
+  "/users/{id}": {
+    get: op({
+      tag: "Users",
+      summary: "Profilul public al unui utilizator, cu câinii lui",
+      description: "Fără email. Dacă există un block în oricare direcție, răspunde 404.",
+      schemas: getUserSchemas,
+      response: { status: 200, description: "Profilul public", schema: dataOf(ref("PublicProfile")) },
+      errors: [404],
+    }),
+  },
+
+  "/blocks": {
+    get: op({
+      tag: "Blocks",
+      summary: "Utilizatorii blocați de mine",
+      response: { status: 200, description: "Lista", schema: dataOf(arrayOf(ref("BlockedUser"))) },
+    }),
+  },
+  "/blocks/{userId}": {
+    post: op({
+      tag: "Blocks",
+      summary: "Blochează un utilizator",
+      description:
+        "Block-ul ascunde ambele părți una de cealaltă: câini, profil, postări, evenimente, conversații. " +
+        "Idempotent. Pe tine însuți → `400 CANNOT_BLOCK_SELF`.",
+      schemas: blockUserSchemas,
+      response: {
+        status: 201,
+        description: "Block creat acum",
+        existingDescription: "Block-ul exista deja",
+        schema: dataOf(ref("BlockedUser")),
+      },
+      errors: [404],
+    }),
+    delete: op({
+      tag: "Blocks",
+      summary: "Deblochează un utilizator (fără efect dacă nu era blocat)",
+      schemas: blockUserSchemas,
+    }),
+  },
+
+  "/reports": {
+    post: op({
+      tag: "Reports",
+      summary: "Raportează un utilizator sau o postare",
+      description:
+        "Exact unul dintre `reportedUserId` și `postId`. Nu te poți raporta pe tine sau postările tale " +
+        "(`400 CANNOT_REPORT_SELF`). Un singur raport deschis per țintă (`409 ALREADY_REPORTED`).",
+      schemas: createReportSchemas,
+      response: { status: 201, description: "Raportul creat", schema: dataOf(ref("Report")) },
+      errors: [404, 409],
+    }),
+  },
+
+  "/conversations": {
+    get: op({
+      tag: "Messaging",
+      summary: "Conversațiile mele, cele cu activitate recentă primele",
+      description: "Conversațiile cu utilizatori blocați (în oricare direcție) nu apar.",
+      response: { status: 200, description: "Conversațiile", schema: dataOf(arrayOf(ref("Conversation"))) },
+    }),
+    post: op({
+      tag: "Messaging",
+      summary: "Deschide conversația cu un utilizator (sau o întoarce pe cea existentă)",
+      description: "Cu tine însuți → `400 CANNOT_MESSAGE_SELF`. Cu un utilizator blocat → `403 BLOCKED`.",
+      schemas: startConversationSchemas,
+      response: {
+        status: 201,
+        description: "Conversație nouă",
+        existingDescription: "Conversația exista deja",
+        schema: dataOf(ref("Conversation")),
+      },
+      errors: [403, 404],
+    }),
+  },
+  "/conversations/{id}": {
+    get: op({
+      tag: "Messaging",
+      summary: "O conversație (doar pentru participanți; altfel 404)",
+      schemas: conversationSchemas,
+      response: { status: 200, description: "Conversația", schema: dataOf(ref("Conversation")) },
+      errors: [403, 404],
+    }),
+  },
+  "/conversations/{id}/messages": {
+    get: op({
+      tag: "Messaging",
+      summary: "Mesajele, în ordine cronologică (paginare cu cursor)",
+      description:
+        "Fără cursor: ultimele `limit` mesaje. `before=<id mesaj>`: mesajele mai vechi (scroll în sus). " +
+        "`after=<id mesaj>`: mesajele noi (polling). `meta.hasMore` spune dacă mai sunt mesaje în acea direcție.",
+      schemas: listMessagesSchemas,
+      response: {
+        status: 200,
+        description: "O pagină de mesaje",
+        schema: obj({ data: arrayOf(ref("Message")), meta: obj({ hasMore: bool, limit: int }) }),
+      },
+      errors: [403, 404],
+    }),
+    post: op({
+      tag: "Messaging",
+      summary: "Trimite un mesaj",
+      description: "Dacă celălalt și-a șters contul → `409 CONVERSATION_CLOSED`.",
+      schemas: sendMessageSchemas,
+      response: { status: 201, description: "Mesajul trimis", schema: dataOf(ref("Message")) },
+      errors: [403, 404, 409],
+    }),
+  },
+  "/conversations/{id}/read": {
+    post: op({
+      tag: "Messaging",
+      summary: "Marchează conversația ca citită",
+      schemas: conversationSchemas,
+      errors: [404],
+    }),
+  },
+  "/messages/unread-count": {
+    get: op({
+      tag: "Messaging",
+      summary: "Numărul total de mesaje necitite (badge-ul din meniu)",
+      response: { status: 200, description: "Totalul", schema: dataOf(obj({ count: int })) },
+    }),
+  },
+});
+
 export const openApiDocument = {
   openapi: "3.1.0",
   info: {
@@ -784,6 +998,10 @@ export const openApiDocument = {
     { name: "Events", description: "Playdate-uri, plimbări în grup, RSVP" },
     { name: "Places", description: "Harta și recenziile locurilor" },
     { name: "Posts", description: "Feed, like-uri, comentarii" },
+    { name: "Users", description: "Profilul meu și profilurile publice" },
+    { name: "Blocks", description: "Blocarea utilizatorilor" },
+    { name: "Reports", description: "Raportarea utilizatorilor și a postărilor" },
+    { name: "Messaging", description: "Conversații și mesaje" },
   ],
   paths,
   components,
