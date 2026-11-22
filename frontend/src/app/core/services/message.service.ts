@@ -1,222 +1,155 @@
-import { Injectable, computed, inject } from '@angular/core';
-import { ActionResult, Conversation, ConversationSummary, Message, User } from '../models';
+import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
+import {
+  Observable,
+  Subscription,
+  interval,
+  map,
+  of,
+  startWith,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
+import { ApiService } from '../api/api.service';
+import { ApiError, ApiModel } from '../api/api.types';
+import { AuthService } from '../auth/auth.service';
 import { DemoStateService } from '../state/demo-state.service';
-import { DemoAuthService } from './demo-auth.service';
-import { UserService } from './user.service';
 
+export type ApiConversation = ApiModel<'Conversation'>;
+export type ApiMessage = ApiModel<'Message'>;
+
+export interface MessagesPage {
+  messages: ApiMessage[];
+  hasMore: boolean;
+}
+
+/** Cât de des verificăm mesajele noi (decis: polling, fără WebSocket). */
+export const CHAT_POLL_MS = 4_000;
+export const INBOX_POLL_MS = 15_000;
+export const MESSAGES_PAGE_SIZE = 50;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Mesageria, prin `/api/conversations` și `/api/messages`.
+ *
+ * Ține lista de conversații și numărul de mesaje necitite (badge-ul din meniu), reîmprospătate
+ * prin polling cât timp utilizatorul e logat. Mesajele conversației deschise le încarcă pagina.
+ *
+ * Alte pagini deschid un chat navigând la `/messages?with=<userId>`.
+ */
 @Injectable({ providedIn: 'root' })
 export class MessageService {
-  private readonly store = inject(DemoStateService);
-  private readonly auth = inject(DemoAuthService);
-  private readonly userService = inject(UserService);
+  private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
+  private readonly demoStore = inject(DemoStateService);
 
-  readonly totalUnreadCount = computed<number>(() =>
-    this.getConversations().reduce((sum, conv) => sum + conv.unreadCount, 0),
-  );
+  private readonly conversationList = signal<ApiConversation[]>([]);
+  private readonly unread = signal(0);
 
-  getConversations(): ConversationSummary[] {
-    const me = this.auth.currentUser();
-    if (!me) {
-      return [];
-    }
-    const state = this.store.state();
+  readonly conversations = this.conversationList.asReadonly();
+  readonly totalUnreadCount = this.unread.asReadonly();
 
-    const summaries: ConversationSummary[] = [];
+  private inboxPolling?: Subscription;
 
-    for (const conv of state.conversations) {
-      if (!conv.participantIds.includes(me.id)) {
-        continue;
+  constructor() {
+    // Badge-ul de necitite: polling doar cât timp există o sesiune.
+    effect(() => {
+      this.inboxPolling?.unsubscribe();
+      this.inboxPolling = undefined;
+      if (!this.auth.isAuthenticated()) {
+        this.conversationList.set([]);
+        this.unread.set(0);
+        return;
       }
-
-      const otherIds = conv.participantIds.filter((id) => id !== me.id);
-      const hasBlockedParticipant = otherIds.some((id) =>
-        this.userService.isBlockedEitherWay(me.id, id),
-      );
-      if (hasBlockedParticipant) {
-        continue;
-      }
-
-      const otherParticipants = otherIds
-        .map((id) => state.users.find((u) => u.id === id))
-        .filter((u): u is User => u !== undefined);
-
-      const convMessages = state.messages
-        .filter((m) => m.conversationId === conv.id)
-        .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
-
-      const lastMessage = convMessages.length > 0 ? convMessages[convMessages.length - 1] : null;
-      const lastReadIso = conv.lastReadByUser[me.id] ?? null;
-      const lastReadMs = lastReadIso ? new Date(lastReadIso).getTime() : 0;
-
-      const unreadCount = convMessages.filter(
-        (m) => m.senderId !== me.id && new Date(m.sentAt).getTime() > lastReadMs,
-      ).length;
-
-      summaries.push({
-        conversation: conv,
-        otherParticipants,
-        lastMessage,
-        unreadCount,
-      });
-    }
-
-    return summaries.sort((a, b) => {
-      const timeA = new Date(a.lastMessage?.sentAt ?? a.conversation.createdAt).getTime();
-      const timeB = new Date(b.lastMessage?.sentAt ?? b.conversation.createdAt).getTime();
-      return timeB - timeA;
+      this.inboxPolling = interval(INBOX_POLL_MS)
+        .pipe(
+          startWith(0),
+          switchMap(() => this.api.get<{ count: number }>('/messages/unread-count')),
+        )
+        .subscribe({ next: (res) => this.unread.set(res.count), error: () => undefined });
     });
+    inject(DestroyRef).onDestroy(() => this.inboxPolling?.unsubscribe());
   }
 
-  getConversationById(conversationId: string): ConversationSummary | undefined {
-    return this.getConversations().find((c) => c.conversation.id === conversationId);
+  /** Reîncarcă lista de conversații (cele cu activitate recentă primele). */
+  loadConversations(): Observable<ApiConversation[]> {
+    return this.api.get<ApiConversation[]>('/conversations').pipe(
+      tap((list) => {
+        this.conversationList.set(list);
+        this.unread.set(list.reduce((sum, c) => sum + c.unreadCount, 0));
+      }),
+    );
   }
 
-  getMessages(conversationId: string): Message[] {
-    const me = this.auth.currentUser();
-    if (!me) {
-      return [];
-    }
-    const conv = this.store.state().conversations.find((c) => c.id === conversationId);
-    if (!conv || !conv.participantIds.includes(me.id)) {
-      return [];
-    }
-    const hasBlocked = conv.participantIds
-      .filter((id) => id !== me.id)
-      .some((id) => this.userService.isBlockedEitherWay(me.id, id));
-    if (hasBlocked) {
-      return [];
-    }
-    return this.store
-      .state()
-      .messages.filter((m) => m.conversationId === conversationId)
-      .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+  getConversation(conversationId: string): Observable<ApiConversation> {
+    return this.api.get<ApiConversation>(`/conversations/${conversationId}`);
   }
 
-  startOrOpenConversation(otherUserId: string): ActionResult<Conversation> {
-    const me = this.auth.currentUser();
-    if (!me) {
-      return { ok: false, error: 'You must be signed in.' };
-    }
-    if (me.id === otherUserId) {
-      return { ok: false, error: 'You cannot start a conversation with yourself.' };
-    }
-    const recipientExists = this.store.state().users.some((u) => u.id === otherUserId);
-    if (!recipientExists) {
-      return { ok: false, error: 'Recipient user was not found.' };
-    }
-    if (this.userService.isBlockedEitherWay(me.id, otherUserId)) {
-      return { ok: false, error: 'Cannot message a blocked user.' };
-    }
-
-    const existing = this.store
-      .state()
-      .conversations.find(
-        (c) =>
-          c.participantIds.length === 2 &&
-          c.participantIds.includes(me.id) &&
-          c.participantIds.includes(otherUserId),
-      );
-
-    if (existing) {
-      return { ok: true, data: existing };
-    }
-
-    const nowIso = new Date().toISOString();
-    const newConv: Conversation = {
-      id: this.store.allocateId('conv'),
-      createdAt: nowIso,
-      participantIds: [me.id, otherUserId],
-      lastReadByUser: {
-        [me.id]: nowIso,
-        [otherUserId]: null,
-      },
-    };
-
-    this.store.updateState((draft) => {
-      draft.conversations.push(newConv);
-      return draft;
-    });
-
-    return { ok: true, data: newConv };
+  /** Deschide conversația cu un utilizator sau o întoarce pe cea existentă. */
+  startConversation(userId: string): Observable<ApiConversation> {
+    return this.resolveUserId(userId).pipe(
+      switchMap((id) => this.api.post<ApiConversation>('/conversations', { userId: id })),
+    );
   }
 
-  sendMessage(
+  /** Ultimele mesaje, sau cele dinainte de `before` (scroll în sus), sau cele după `after` (polling). */
+  listMessages(
     conversationId: string,
-    content: string,
-    options?: { includeSimulatedReply?: boolean },
-  ): ActionResult<Message> {
-    const me = this.auth.currentUser();
-    if (!me) {
-      return { ok: false, error: 'You must be signed in.' };
-    }
-    const text = content.trim();
-    if (!text) {
-      return { ok: false, error: 'Message cannot be empty.' };
-    }
-
-    const conv = this.store.state().conversations.find((c) => c.id === conversationId);
-    if (!conv || !conv.participantIds.includes(me.id)) {
-      return { ok: false, error: 'Conversation not found.' };
-    }
-    const hasBlocked = conv.participantIds
-      .filter((id) => id !== me.id)
-      .some((id) => this.userService.isBlockedEitherWay(me.id, id));
-    if (hasBlocked) {
-      return { ok: false, error: 'Cannot send messages to a blocked user.' };
-    }
-
-    const nowIso = new Date().toISOString();
-    const message: Message = {
-      id: this.store.allocateId('msg'),
-      conversationId,
-      senderId: me.id,
-      content: text,
-      sentAt: nowIso,
-    };
-
-    let simulatedReply: Message | null = null;
-    if (options?.includeSimulatedReply) {
-      const otherUserId = conv.participantIds.find((id) => id !== me.id) ?? null;
-      if (otherUserId) {
-        const replyTime = new Date(Date.now() + 500).toISOString();
-        simulatedReply = {
-          id: this.store.allocateId('msg'),
-          conversationId,
-          senderId: otherUserId,
-          content: 'Sounds great! Let us know what time works best for our dogs.',
-          sentAt: replyTime,
-          isSimulatedReply: true,
-        };
-      }
-    }
-
-    this.store.updateState((draft) => {
-      draft.messages.push(message);
-      if (simulatedReply) {
-        draft.messages.push(simulatedReply);
-      }
-      const targetConv = draft.conversations.find((c) => c.id === conversationId);
-      if (targetConv) {
-        targetConv.lastReadByUser[me.id] = simulatedReply ? simulatedReply.sentAt : nowIso;
-      }
-      return draft;
-    });
-
-    return { ok: true, data: message };
+    cursor: { before?: string; after?: string } = {},
+  ): Observable<MessagesPage> {
+    return this.api
+      .getPage<ApiMessage, { hasMore: boolean; limit: number }>(
+        `/conversations/${conversationId}/messages`,
+        { ...cursor, limit: MESSAGES_PAGE_SIZE },
+      )
+      .pipe(map((page) => ({ messages: page.items, hasMore: page.meta.hasMore })));
   }
 
-  markAsRead(conversationId: string): void {
-    const me = this.auth.currentUser();
-    if (!me) {
-      return;
+  sendMessage(conversationId: string, content: string): Observable<ApiMessage> {
+    return this.api.post<ApiMessage>(`/conversations/${conversationId}/messages`, { content });
+  }
+
+  markAsRead(conversationId: string): Observable<void> {
+    return this.api.post<void>(`/conversations/${conversationId}/read`).pipe(
+      tap(() => {
+        const list = this.conversationList();
+        const target = list.find((c) => c.id === conversationId);
+        if (!target || target.unreadCount === 0) return;
+        this.unread.update((n) => Math.max(0, n - target.unreadCount));
+        this.conversationList.set(
+          list.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c)),
+        );
+      }),
+    );
+  }
+
+  /**
+   * PUNTE TEMPORARĂ (se scoate la INTEGRATION_TASKS.md, secțiunea 9).
+   * Paginile încă pe mock-uri dau id-uri demo (`user-elena`), nu UUID-uri.
+   * Găsim utilizatorul real după nume, prin căutarea de câini (conturile demo au aceleași nume
+   * în mock-uri și în seed-ul backend-ului). Merge doar pentru utilizatori care au câini.
+   */
+  private resolveUserId(userId: string): Observable<string> {
+    if (UUID_RE.test(userId)) return of(userId);
+
+    const mockUser = this.demoStore.state().users.find((u) => u.id === userId);
+    if (!mockUser) {
+      return throwError(() => new ApiError(404, 'NOT_FOUND', 'User not found'));
     }
-    const nowIso = new Date().toISOString();
-    this.store.updateState((draft) => {
-      const conv = draft.conversations.find((c) => c.id === conversationId);
-      if (conv && conv.participantIds.includes(me.id)) {
-        conv.lastReadByUser[me.id] = nowIso;
-      }
-      return draft;
-    });
+    return this.api
+      .getPage<{ owner: { id: string; firstName: string; lastName: string } }>('/search/dogs', {
+        q: mockUser.lastName,
+        pageSize: 100,
+      })
+      .pipe(
+        map((page) => {
+          const owner = page.items
+            .map((dog) => dog.owner)
+            .find((o) => o.firstName === mockUser.firstName && o.lastName === mockUser.lastName);
+          if (!owner) throw new ApiError(404, 'NOT_FOUND', 'User not found');
+          return owner.id;
+        }),
+      );
   }
 }

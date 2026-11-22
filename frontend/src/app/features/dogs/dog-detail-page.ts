@@ -3,7 +3,6 @@ import { Router, RouterLink } from '@angular/router';
 import {
   DemoAuthService,
   DogService,
-  MessageService,
   UserService,
 } from '../../core/services';
 
@@ -16,7 +15,6 @@ export class DogDetailPageComponent {
   private readonly auth = inject(DemoAuthService);
   private readonly dogService = inject(DogService);
   private readonly userService = inject(UserService);
-  private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
   readonly id = input<string>();
@@ -34,10 +32,7 @@ export class DogDetailPageComponent {
   });
 
   onSendMessage(ownerId: string): void {
-    const res = this.messageService.startOrOpenConversation(ownerId);
-    if (res.ok && res.data) {
-      void this.router.navigate(['/messages', res.data.id]);
-    }
+    void this.router.navigate(['/messages'], { queryParams: { with: ownerId } });
   }
 
   onInviteToPlaydate(ownerId: string): void {

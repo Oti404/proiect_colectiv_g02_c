@@ -7,7 +7,6 @@ import { SearchPageComponent } from '../../features/search/search-page';
 import { DEMO_STORAGE_KEY, DemoStateService } from '../state/demo-state.service';
 import { DemoAuthService } from './demo-auth.service';
 import { DogService } from './dog.service';
-import { MessageService } from './message.service';
 import { DEFAULT_SEARCH_FILTERS, SearchService } from './search.service';
 import { UserService } from './user.service';
 
@@ -128,7 +127,6 @@ describe('STEP 2 Core Flows', () => {
 
   it('navigates from DogDetailPage to Messages and Invite to Playdate with context', async () => {
     const auth = TestBed.inject(DemoAuthService);
-    const messageService = TestBed.inject(MessageService);
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -145,9 +143,11 @@ describe('STEP 2 Core Flows', () => {
     const detailPage = detailFixture.componentInstance;
     expect(detailPage.details()?.dog.name).toBe('Luna');
 
+    // Mesageria e pe API: pagina de câine doar deschide chat-ul prin `/messages?with=`
     detailPage.onSendMessage('user-elena');
-    const conv = messageService.startOrOpenConversation('user-elena').data!;
-    expect(navigateSpy).toHaveBeenCalledWith(['/messages', conv.id]);
+    expect(navigateSpy).toHaveBeenCalledWith(['/messages'], {
+      queryParams: { with: 'user-elena' },
+    });
 
     detailPage.onInviteToPlaydate('user-elena');
     expect(navigateSpy).toHaveBeenCalledWith(['/events/new'], {

@@ -6,7 +6,6 @@ import { DogDetailPageComponent } from '../../features/dogs/dog-detail-page';
 import { EventDetailPageComponent } from '../../features/events/event-detail-page';
 import { EventFormPageComponent } from '../../features/events/event-form-page';
 import { FeedPageComponent } from '../../features/feed/feed-page';
-import { MessagesPageComponent } from '../../features/messages/messages-page';
 import { PlacesMapPageComponent } from '../../features/places/places-map-page';
 import { UserProfilePageComponent } from '../../features/profile/user-profile-page';
 import {
@@ -23,9 +22,7 @@ import { DemoAuthService } from './demo-auth.service';
 import { DogService } from './dog.service';
 import { EventService } from './event.service';
 import { FeedService } from './feed.service';
-import { MessageService } from './message.service';
 import { DEFAULT_SEARCH_FILTERS, SearchService } from './search.service';
-import { UserService } from './user.service';
 
 describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
   beforeEach(() => {
@@ -43,7 +40,6 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     const auth = TestBed.inject(DemoAuthService);
     const searchService = TestBed.inject(SearchService);
     const eventService = TestBed.inject(EventService);
-    const messageService = TestBed.inject(MessageService);
     const dogService = TestBed.inject(DogService);
     const careService = TestBed.inject(CareService);
     const feedService = TestBed.inject(FeedService);
@@ -88,17 +84,7 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     expect(eventView?.goingDogsCount).toBe(2);
     expect(eventView?.participants.some((p) => p.dog.id === 'dog-luna')).toBe(true);
 
-    // 10-12. Open messaging, send a message to Elena, switch to Elena & verify
-    const convRes = messageService.startOrOpenConversation('user-elena');
-    expect(convRes.ok).toBe(true);
-    const convId = convRes.data!.id;
-    expect(messageService.sendMessage(convId, 'See you at Parcul Central with Rex!').ok).toBe(true);
-
-    expect(auth.switchDemoAccount('user-elena').ok).toBe(true);
-    const elenaMessages = messageService.getMessages(convId);
-    expect(elenaMessages.some((m) => m.content === 'See you at Parcul Central with Rex!')).toBe(
-      true,
-    );
+    // 10-12. Mesageria e pe API acum (testată în message.service.spec.ts)
 
     // 13-15. Switch to Ana, add & edit a dog, add health record & verify weight/reminders
     expect(auth.switchDemoAccount('user-ana').ok).toBe(true);
@@ -166,8 +152,6 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
   it('validates demo date helpers, /map directory interactions, and stability edge cases', async () => {
     const auth = TestBed.inject(DemoAuthService);
     const eventService = TestBed.inject(EventService);
-    const messageService = TestBed.inject(MessageService);
-    const userService = TestBed.inject(UserService);
     const dogService = TestBed.inject(DogService);
     const feedService = TestBed.inject(FeedService);
 
@@ -212,13 +196,6 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     ).toBe(false);
     expect(eventService.updateEvent('event-1', { maxParticipants: 0 }).ok).toBe(false);
 
-    // Phase 5: Messaging — unknown user rejected & blocked user hides messages
-    expect(messageService.startOrOpenConversation('user-does-not-exist').ok).toBe(false);
-    expect(userService.blockUser('user-elena').ok).toBe(true);
-    expect(messageService.getMessages('conv-ana-elena').length).toBe(0);
-    expect(messageService.sendMessage('conv-ana-elena', 'Should be blocked').ok).toBe(false);
-    userService.unblockUser('user-elena');
-
     // Phase 5: Deleted dog cleanup keeps event RSVPs, posts & care records consistent
     const bellaPost = feedService.createPost({
       content: 'Bella park snap',
@@ -231,9 +208,7 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
       feedService.getFeedPosts().find((p) => p.post.id === bellaPost.data!.id)?.dog,
     ).toBeNull();
     expect(
-      eventService
-        .getEventById('event-4')
-        ?.participants.some((p) => p.dog.id === 'dog-bella'),
+      eventService.getEventById('event-4')?.participants.some((p) => p.dog.id === 'dog-bella'),
     ).toBe(false);
 
     // Phase 5: Invalid route IDs render safe fallback UI without throwing
@@ -252,13 +227,6 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     await eventFixture.whenStable();
     expect((eventFixture.nativeElement as HTMLElement).textContent).toContain(
       'Event Not Found or Private',
-    );
-
-    const msgFixture = TestBed.createComponent(MessagesPageComponent);
-    msgFixture.componentRef.setInput('id', 'invalid-conv-id');
-    await msgFixture.whenStable();
-    expect((msgFixture.nativeElement as HTMLElement).textContent).toContain(
-      'Select a conversation on the left',
     );
 
     const careFixture = TestBed.createComponent(CarePageComponent);

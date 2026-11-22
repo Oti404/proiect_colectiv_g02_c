@@ -30,10 +30,10 @@ export class ApiService {
     );
   }
 
-  /** Pentru rutele paginate (`GET /posts`, `GET /search/dogs`). */
-  getPage<T>(path: string, params?: QueryParams): Observable<Page<T>> {
+  /** Pentru rutele paginate (`GET /posts`, `GET /search/dogs`, `GET /conversations/:id/messages`). */
+  getPage<T, M = PaginationMeta>(path: string, params?: QueryParams): Observable<Page<T, M>> {
     return this.http
-      .get<{ data: T[]; meta: PaginationMeta }>(this.url(path), { params: toHttpParams(params) })
+      .get<{ data: T[]; meta: M }>(this.url(path), { params: toHttpParams(params) })
       .pipe(
         map((res) => ({ items: res.data, meta: res.meta })),
         catchError((err) => throwError(() => ApiError.from(err))),

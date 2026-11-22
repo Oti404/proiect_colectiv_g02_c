@@ -3,7 +3,6 @@ import { Router, RouterLink } from '@angular/router';
 import {
   DemoAuthService,
   DogService,
-  MessageService,
   UserService,
 } from '../../core/services';
 import { calculateApproxDistanceKm } from '../../shared/utils/distance.util';
@@ -18,7 +17,6 @@ export class UserProfilePageComponent {
   private readonly auth = inject(DemoAuthService);
   private readonly userService = inject(UserService);
   private readonly dogService = inject(DogService);
-  private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
   readonly id = input<string>();
@@ -69,10 +67,7 @@ export class UserProfilePageComponent {
   });
 
   onSendMessage(userId: string): void {
-    const res = this.messageService.startOrOpenConversation(userId);
-    if (res.ok && res.data) {
-      void this.router.navigate(['/messages', res.data.id]);
-    }
+    void this.router.navigate(['/messages'], { queryParams: { with: userId } });
   }
 
   onInviteToPlaydate(userId: string): void {

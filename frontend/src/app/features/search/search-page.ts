@@ -5,7 +5,6 @@ import {
   DEFAULT_SEARCH_FILTERS,
   DemoAuthService,
   DogService,
-  MessageService,
   SearchService,
 } from '../../core/services';
 
@@ -18,7 +17,6 @@ export class SearchPageComponent {
   private readonly auth = inject(DemoAuthService);
   private readonly dogService = inject(DogService);
   private readonly searchService = inject(SearchService);
-  private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
   readonly currentUser = this.auth.currentUser;
@@ -68,10 +66,7 @@ export class SearchPageComponent {
   }
 
   onMessageOwner(ownerId: string): void {
-    const res = this.messageService.startOrOpenConversation(ownerId);
-    if (res.ok && res.data) {
-      void this.router.navigate(['/messages', res.data.id]);
-    }
+    void this.router.navigate(['/messages'], { queryParams: { with: ownerId } });
   }
 
   onInvitePlaydate(ownerId: string): void {

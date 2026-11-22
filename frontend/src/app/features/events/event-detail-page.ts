@@ -6,7 +6,6 @@ import {
   DemoAuthService,
   DogService,
   EventService,
-  MessageService,
   UserService,
 } from '../../core/services';
 
@@ -21,7 +20,6 @@ export class EventDetailPageComponent {
   private readonly eventService = inject(EventService);
   private readonly dogService = inject(DogService);
   private readonly userService = inject(UserService);
-  private readonly messageService = inject(MessageService);
 
   readonly id = input<string>();
 
@@ -171,9 +169,6 @@ export class EventDetailPageComponent {
   }
 
   onMessageOrganizer(organizerId: string): void {
-    const res = this.messageService.startOrOpenConversation(organizerId);
-    if (res.ok && res.data) {
-      void this.router.navigate(['/messages', res.data.id]);
-    }
+    void this.router.navigate(['/messages'], { queryParams: { with: organizerId } });
   }
 }

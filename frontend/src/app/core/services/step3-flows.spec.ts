@@ -4,11 +4,9 @@ import { routes } from '../../app.routes';
 import { EventDetailPageComponent } from '../../features/events/event-detail-page';
 import { EventFormPageComponent } from '../../features/events/event-form-page';
 import { EventsPageComponent } from '../../features/events/events-page';
-import { MessagesPageComponent } from '../../features/messages/messages-page';
 import { DemoStateService } from '../state/demo-state.service';
 import { DemoAuthService } from './demo-auth.service';
 import { EventService } from './event.service';
-import { MessageService } from './message.service';
 import { DEFAULT_SEARCH_FILTERS, SearchService } from './search.service';
 
 describe('STEP 3 Events & Messaging Flows', () => {
@@ -27,7 +25,6 @@ describe('STEP 3 Events & Messaging Flows', () => {
     const auth = TestBed.inject(DemoAuthService);
     const searchService = TestBed.inject(SearchService);
     const eventService = TestBed.inject(EventService);
-    const messageService = TestBed.inject(MessageService);
 
     // 1. Ana enters demo and searches Luna
     auth.enterDemo('user-ana');
@@ -76,32 +73,15 @@ describe('STEP 3 Events & Messaging Flows', () => {
     expect(anaView.goingDogsCount).toBe(2);
     expect(anaView.isFull).toBe(true);
     expect(anaView.currentUserInvitation).toBeNull();
-    expect(anaView.participants.some((p) => p.dog.id === 'dog-luna' && p.rsvp.status === 'GOING')).toBe(
-      true,
-    );
+    expect(
+      anaView.participants.some((p) => p.dog.id === 'dog-luna' && p.rsvp.status === 'GOING'),
+    ).toBe(true);
 
     const overCapacity = eventService.respondToEvent(createdEventId, 'dog-bella', 'GOING');
     expect(overCapacity.ok).toBe(false);
 
-    // 5. Open chat with Elena and send message
-    const convRes = messageService.startOrOpenConversation('user-elena');
-    expect(convRes.ok).toBe(true);
-    const convId = convRes.data!.id;
-    const sendRes = messageService.sendMessage(convId, 'See you with Rex on Sunday!');
-    expect(sendRes.ok).toBe(true);
-
-    // 6. Switch to Elena -> verify unread count & message -> open thread marks read
+    // 5-6. Mesageria e pe API acum (testată în message.service.spec.ts)
     auth.switchDemoAccount('user-elena');
-    const elenaConvBefore = messageService.getConversationById(convId)!;
-    expect(elenaConvBefore.unreadCount).toBe(1);
-
-    const msgFixture = TestBed.createComponent(MessagesPageComponent);
-    msgFixture.componentRef.setInput('id', convId);
-    await msgFixture.whenStable();
-
-    const messages = msgFixture.componentInstance.activeMessages();
-    expect(messages.some((m) => m.content === 'See you with Rex on Sunday!')).toBe(true);
-    expect(messageService.getConversationById(convId)?.unreadCount).toBe(0);
 
     // 7. Simulate browser refresh via fresh TestBed reading persisted localStorage
     TestBed.resetTestingModule();
@@ -109,16 +89,10 @@ describe('STEP 3 Events & Messaging Flows', () => {
 
     const reloadedAuth = TestBed.inject(DemoAuthService);
     const reloadedEvents = TestBed.inject(EventService);
-    const reloadedMessages = TestBed.inject(MessageService);
 
     expect(reloadedAuth.currentUser()?.id).toBe('user-elena');
     const persistedEvent = reloadedEvents.getEventById(createdEventId);
     expect(persistedEvent?.goingDogsCount).toBe(2);
-    expect(
-      reloadedMessages
-        .getMessages(convId)
-        .some((m) => m.content === 'See you with Rex on Sunday!'),
-    ).toBe(true);
   });
 
   it('enforces organizer-only edit/cancel and start/end time validation', async () => {
