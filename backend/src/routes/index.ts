@@ -5,6 +5,7 @@ import { breedsRouter } from "./breeds.routes.js";
 import { dogsRouter } from "./dogs.routes.js";
 import { authRouter } from "./auth.routes.js";
 import { healthRouter } from "./health.routes.js";
+import { placesRouter } from "./places.routes.js";
 import { postsRouter } from "./posts.routes.js";
 import { searchRouter } from "./search.routes.js";
 
@@ -13,6 +14,8 @@ import { searchRouter } from "./search.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use("/health", healthRouter);
+apiRouter.use("/places", placesRouter);
+
 apiRouter.use("/posts", postsRouter);
 
 apiRouter.use("/events", eventsRouter);
