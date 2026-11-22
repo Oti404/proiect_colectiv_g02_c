@@ -4,6 +4,7 @@ import {
   DEMO_ACCOUNT_OPTIONS,
   NEIGHBORHOOD_COORDINATES,
 } from '../mock-data/demo-seed';
+import { nearestNeighborhood } from '../auth/neighborhoods';
 import { ActionResult, DemoAccountOption, User } from '../models';
 import { DemoStateService } from '../state/demo-state.service';
 
@@ -112,6 +113,48 @@ export class DemoAuthService {
     });
 
     return { ok: true, data: newUser };
+  }
+
+  /**
+   * Punte temporară spre sesiunea reală (`AuthService`): face utilizatorul logat prin API
+   * utilizatorul curent și în datele demo, ca paginile încă nemutate pe API să funcționeze.
+   * Conturile demo au aceleași emailuri în seed-ul backend-ului și în mock-uri; un cont nou,
+   * creat prin API, e adăugat în mock-uri. Dispare odată cu `DemoStateService`.
+   */
+  adoptApiUser(apiUser: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl: string | null;
+    bio: string | null;
+    approxLatitude: number;
+    approxLongitude: number;
+    consentAt: string;
+    createdAt: string;
+  }): void {
+    const email = apiUser.email.toLowerCase();
+    this.store.updateState((draft) => {
+      let user = draft.users.find((u) => u.email.toLowerCase() === email);
+      if (!user) {
+        user = {
+          id: apiUser.id,
+          email,
+          firstName: apiUser.firstName,
+          lastName: apiUser.lastName,
+          avatarUrl: apiUser.avatarUrl,
+          bio: apiUser.bio,
+          neighborhood: nearestNeighborhood(apiUser.approxLatitude, apiUser.approxLongitude),
+          approxLatitude: apiUser.approxLatitude,
+          approxLongitude: apiUser.approxLongitude,
+          consentAt: apiUser.consentAt,
+          createdAt: apiUser.createdAt,
+        };
+        draft.users.push(user);
+      }
+      draft.currentUserId = user.id;
+      return draft;
+    });
   }
 
   logout(): void {

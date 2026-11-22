@@ -1,14 +1,6 @@
 import { DemoAccountOption, User } from '../models';
 
-export const NEIGHBORHOOD_COORDINATES: Record<string, { lat: number; lng: number }> = {
-  Centru: { lat: 46.77, lng: 23.59 },
-  Gheorgheni: { lat: 46.77, lng: 23.62 },
-  'Mănăștur': { lat: 46.75, lng: 23.55 },
-  Zorilor: { lat: 46.75, lng: 23.58 },
-  'Mărăști': { lat: 46.78, lng: 23.61 },
-  Grigorescu: { lat: 46.77, lng: 23.56 },
-  'Bună Ziua': { lat: 46.75, lng: 23.60 },
-};
+export { NEIGHBORHOOD_COORDINATES } from '../auth/neighborhoods';
 
 export const SEED_USERS: User[] = [
   {

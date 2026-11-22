@@ -1,43 +1,70 @@
 <section class="auth-wrapper stack">
   <div class="card auth-card hero-card stack">
-    <div class="row" style="justify-content: space-between; align-items: flex-start;">
-      <div>
-        <div class="brand-tag">
-          <span class="tag-dot"></span>
-          <span class="brand-title">DogApp Community</span>
-        </div>
-        <h1 class="auth-title">Welcome to Cluj DogApp</h1>
-      </div>
-      <span class="badge badge-warn">Simulated Demo</span>
+    <div class="brand-tag">
+      <span class="tag-dot"></span>
+      <span class="brand-title">DogApp Community</span>
     </div>
-
+    <h1 class="auth-title">Welcome to Cluj DogApp</h1>
     <p class="muted">
       Connect with dog owners, arrange playdates, and track pet care across Cluj-Napoca.
-      This is a 100% interactive, browser-only frontend prototype.
     </p>
+  </div>
 
-    <div class="quick-enter-action">
-      <button type="button" class="btn btn-primary btn-hero" (click)="onEnterDefaultDemo()">
-        <span>Enter Demo as Ana Pop</span>
-        <span class="btn-subtext">(Centru · Rex, Golden Retriever)</span>
-      </button>
-    </div>
+  <div class="card auth-card stack">
+    <h2 class="section-title">Sign In</h2>
+
+    @if (reason() === 'session-expired') {
+      <div class="alert-error">Your session has expired. Please sign in again.</div>
+    }
+    @if (errorMessage()) {
+      <div class="alert-error">{{ errorMessage() }}</div>
+    }
+
+    <form class="stack" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="field">
+        <label for="login-email">Email Address</label>
+        <input id="login-email" type="email" autocomplete="email" formControlName="email" />
+        @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+          <span class="error-text">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input
+          id="login-password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+        />
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <span class="error-text">Enter your password.</span>
+        }
+      </div>
+
+      <div class="row auth-footer" style="justify-content: space-between">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'Signing in…' : 'Sign In' }}
+        </button>
+        <a routerLink="/register" class="link-subtle">Create an account &rarr;</a>
+      </div>
+    </form>
   </div>
 
   <div class="card auth-card stack">
     <div class="section-header">
-      <h2 class="section-title">Select a Predefined Demo Profile</h2>
-      <span class="muted" style="font-size: 0.82rem;">Switch accounts at any time from header</span>
+      <h2 class="section-title">Demo Accounts</h2>
+      <span class="muted" style="font-size: 0.82rem">Password for all: {{ demoPassword }}</span>
     </div>
 
     <div class="grid-2 account-grid">
-      @for (account of demoAccounts(); track account.userId) {
+      @for (account of demoAccounts; track account.email) {
         <div class="account-card stack">
           <div class="account-header row">
-            <span class="account-avatar">{{ account.label.charAt(0) }}</span>
+            <span class="account-avatar">{{ account.name.charAt(0) }}</span>
             <div class="account-meta">
-              <strong class="account-name">{{ account.label }}</strong>
-              <span class="muted account-role">{{ account.roleHint }}</span>
+              <strong class="account-name">{{ account.name }}</strong>
+              <span class="muted account-role">{{ account.hint }}</span>
             </div>
           </div>
 
@@ -45,41 +72,14 @@
             <button
               type="button"
               class="btn btn-sm btn-subtle full-width"
-              (click)="onEnterAsAccount(account.userId)"
+              [disabled]="submitting()"
+              (click)="onDemoLogin(account.email)"
             >
-              Sign in as {{ account.label.split(' ')[0] }}
+              Sign in as {{ account.name.split(' ')[0] }}
             </button>
           </div>
         </div>
       }
     </div>
-  </div>
-
-  <div class="card auth-card stack">
-    <h2 class="section-title">Or Sign In with Demo Email</h2>
-
-    @if (errorMessage()) {
-      <div class="alert-error">{{ errorMessage() }}</div>
-    }
-
-    <form class="stack" [formGroup]="loginForm" (ngSubmit)="onSubmitEmailLogin()">
-      <div class="field">
-        <label for="login-email">Demo Email Address</label>
-        <input
-          id="login-email"
-          type="email"
-          placeholder="e.g. ana@demo.dogapp, elena@demo.dogapp"
-          formControlName="email"
-        />
-        @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
-          <span class="error-text">Enter a valid email address.</span>
-        }
-      </div>
-
-      <div class="row auth-footer" style="justify-content: space-between;">
-        <button type="submit" class="btn btn-primary">Sign In</button>
-        <a routerLink="/register" class="link-subtle">Register a new demo profile &rarr;</a>
-      </div>
-    </form>
   </div>
 </section>

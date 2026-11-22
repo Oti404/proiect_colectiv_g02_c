@@ -50,19 +50,19 @@
           <select
             id="demo-account-select"
             class="account-select"
-            aria-label="Switch demo account"
-            [value]="user.id"
+            aria-label="Sign in with another demo account"
+            [value]="user.email"
             (change)="onSwitchAccount($event)"
           >
-            @for (acc of switcherOptions(); track acc.userId) {
-              <option [value]="acc.userId">{{ acc.label }}</option>
+            @for (acc of switcherOptions(); track acc.email) {
+              <option [value]="acc.email">{{ acc.label }}</option>
             }
           </select>
         </div>
       }
 
       <div class="header-actions">
-        <button type="button" class="btn btn-sm btn-subtle" (click)="onResetDemoData()" title="Reset mock database to initial seed">
+        <button type="button" class="btn btn-sm btn-subtle" (click)="onResetDemoData()" title="Reset the demo data stored in this browser">
           Reset Data
         </button>
 
