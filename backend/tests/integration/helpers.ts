@@ -47,3 +47,47 @@ export async function createUser(
   const token = signAccessToken(user.id);
   return { id: user.id, email, token, authHeader: { Authorization: `Bearer ${token}` } };
 }
+
+// ───────────── Date de test pentru alte tabele ─────────────
+
+let breedCounter = 0;
+
+export async function createDog(ownerId: string, overrides: Partial<{ name: string }> = {}) {
+  breedCounter += 1;
+  const breed = await prisma.breed.create({
+    data: { name: `Breed ${breedCounter}`, size: "MEDIUM", careTips: "-", energyLevel: 3 },
+  });
+  return prisma.dog.create({
+    data: {
+      ownerId,
+      breedId: breed.id,
+      name: overrides.name ?? "Rex",
+      sex: "MALE",
+      size: "MEDIUM",
+      temperament: "FRIENDLY",
+    },
+  });
+}
+
+export async function createEvent(
+  organizerId: string,
+  overrides: Partial<{ status: "ACTIVE" | "CANCELLED"; title: string }> = {},
+) {
+  const startsAt = new Date(Date.now() + 24 * 3600 * 1000);
+  return prisma.event.create({
+    data: {
+      organizerId,
+      title: overrides.title ?? "Plimbare",
+      type: "GROUP_WALK",
+      visibility: "PRIVATE",
+      locationText: "Parcul Central",
+      status: overrides.status ?? "ACTIVE",
+      startsAt,
+      endsAt: new Date(startsAt.getTime() + 3600 * 1000),
+    },
+  });
+}
+
+export async function createPost(authorId: string) {
+  return prisma.post.create({ data: { authorId, content: "Salut!" } });
+}
