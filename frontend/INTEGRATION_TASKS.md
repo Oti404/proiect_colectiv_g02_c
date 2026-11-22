@@ -6,30 +6,28 @@
 
 | Ce | Cine | Stare |
 |---|---|---|
-| 0 Fundație | Otniel | ✅ gata, ramura `feature/fe-foundation` (PR în așteptare) |
-| 1 Auth și sesiune | Otniel | ✅ gata, ramura `feature/fe-auth` (după fundație) |
-| 8 Mesagerie | Otniel | ✅ gata, ramura `feature/fe-messaging` (după auth) |
-| 2 Profil, câini, block, raportări | **Vlad** | ⏳ de făcut |
-| 3 Căutare | **Vlad** | ⏳ de făcut |
-| 4 Îngrijire | **Vlad** | ⏳ de făcut |
-| 5 Evenimente și RSVP | **Tibi** | ⏳ de făcut |
-| 6 Feed | **Tibi** | ⏳ de făcut |
-| 7 Hartă / locuri | **Tibi** | ⏳ de făcut |
+| 0 Fundație | Otniel | ✅ în `main` (#27) |
+| 1 Auth și sesiune | Otniel | ✅ în `main` (#28) |
+| 8 Mesagerie | Otniel | ✅ în `main` (#29) |
+| 2 Profil, câini, block, raportări | **Vlad** | 🟢 se poate începe |
+| 3 Căutare | **Vlad** | 🟢 se poate începe |
+| 4 Îngrijire | **Vlad** | 🟢 se poate începe |
+| 5 Evenimente și RSVP | **Tibi** | 🟢 se poate începe |
+| 6 Feed | **Tibi** | 🟢 se poate începe |
+| 7 Hartă / locuri | **Tibi** | 🟢 se poate începe |
 | 9 Final | Otniel | ⏳ după ce intră toate modulele |
 
-Ramurile lui Otniel intră în `main` în ordinea **fundație → auth → mesagerie**.
+**Fundația, auth-ul și mesageria sunt în `main`: Vlad și Tibi pot începe acum.**
 
 ---
 
 ## 🚀 Cum începeți
 
-1. **Așteptați să intre în `main` fundația și auth-ul.** Abia apoi faceți ramura voastră din `main`: `feature/fe-<modul>` (de ex. `feature/fe-search`, `feature/fe-events`).
+1. Luați ultimul `main` (`git switch main` și `git pull`), apoi faceți ramura voastră din el: `feature/fe-<modul>` (de ex. `feature/fe-search`, `feature/fe-feed`). În `frontend/` rulați `npm install`.
 2. Porniți backend-ul: `docker compose up -d` din rădăcina repo-ului. Apoi, din `frontend/`: `npm start` (aplicația pe `http://localhost:4200`; `/api` merge automat la backend prin `proxy.conf.json`).
 3. Logați-vă cu un cont demo: butoanele de pe pagina de login, sau de ex. `ana.pop@demo.dogapp` / parola `pass1`. Sunt 7 conturi (Ana, Mihai, Elena, Andrei, Ioana, Radu, Mara).
 4. Citiți secțiunea **„Legarea de backend”** din `frontend/README.md` și exemplul `core/api/breed-api.service.ts`.
 5. Deschideți Swagger-ul (`/api/docs`): pentru fiecare rută vedeți exact ce trimiteți și ce primiți. Puteți apela rutele direct de acolo (login → copiați `token` → **Authorize**).
-
-Până intră fundația, puteți citi Swagger-ul și pregăti componentele (stările de loading / eroare) pentru modulele voastre.
 
 ---
 
