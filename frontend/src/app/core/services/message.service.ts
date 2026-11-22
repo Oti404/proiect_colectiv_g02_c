@@ -125,7 +125,7 @@ export class MessageService {
   }
 
   /**
-   * PUNTE TEMPORARĂ (se scoate la INTEGRATION_TASKS.md, secțiunea 9).
+   * PUNTE TEMPORARĂ (se scoate la pasul „Final” din planul de integrare).
    * Paginile încă pe mock-uri dau id-uri demo (`user-elena`), nu UUID-uri.
    * Găsim utilizatorul real după nume, prin căutarea de câini (conturile demo au aceleași nume
    * în mock-uri și în seed-ul backend-ului). Merge doar pentru utilizatori care au câini.
