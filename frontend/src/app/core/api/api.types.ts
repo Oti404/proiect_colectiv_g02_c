@@ -14,10 +14,10 @@ export type ApiModel<Name extends keyof components['schemas']> = components['sch
 /** Meta-ul listelor paginate (`GET /posts`, `GET /search/dogs`). */
 export type PaginationMeta = ApiModel<'PaginationMeta'>;
 
-/** O pagină de rezultate: `{ data, meta }` din API. */
-export interface Page<T> {
+/** O pagină de rezultate: `{ data, meta }` din API. Mesajele au alt meta: `{ hasMore, limit }`. */
+export interface Page<T, M = PaginationMeta> {
   items: T[];
-  meta: PaginationMeta;
+  meta: M;
 }
 
 /** Un câmp invalid, din `details` la `400 VALIDATION_ERROR`. */
