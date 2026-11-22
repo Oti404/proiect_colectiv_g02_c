@@ -86,6 +86,7 @@ Cerințe: **Docker Desktop** instalat și pornit (în fereastra lui trebuie să 
 |---|---|
 | Frontend | http://localhost:8080 |
 | Backend (API) | http://localhost:3000/api/health |
+| Documentație API (Swagger) | http://localhost:3000/api/docs |
 | Bază de date | `localhost:5433` (nu se deschide în browser, vezi [database/README.md](database/README.md)) |
 
 Comenzi utile:

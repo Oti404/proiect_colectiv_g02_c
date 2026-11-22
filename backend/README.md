@@ -37,6 +37,8 @@ Toate comenzile se rulează din folderul `backend/`.
 
 API-ul pornește la `http://localhost:3000`. Verificare: `http://localhost:3000/api/health` → `{"data":{"status":"ok","database":"up"}}`.
 
+Documentația tuturor endpoint-urilor (Swagger UI) e la `http://localhost:3000/api/docs`. De acolo rutele se pot și apela: login cu `POST /auth/login` (de ex. `ana.pop@demo.dogapp` / `pass1`), apoi **Authorize** cu token-ul primit. Specificația OpenAPI brută: `http://localhost:3000/api/docs/openapi.json`.
+
 ## Comenzi utile
 
 | Comandă | Ce face |
@@ -63,7 +65,7 @@ backend/
 │   ├── migrations/     ← migrările (se urcă în repo)
 │   └── seed.ts         ← datele demo (rase, utilizatori, câini)
 ├── prisma.config.ts    ← configurarea Prisma (conexiunea la baza de date)
-├── docs/api/           ← documentația endpoint-urilor, câte un fișier pe modul
+├── docs/api/           ← note detaliate pe modul (de ex. auth.md)
 ├── tests/              ← teste unit (fără bază de date), aceeași structură ca src/
 │   └── integration/    ← teste pe baza de date reală + helpers (createUser, resetDatabase)
 └── src/
@@ -76,6 +78,7 @@ backend/
     ├── utils/          ← erori HTTP, format răspuns, paginare, geo, JWT
     ├── lib/prisma.ts   ← clientul Prisma
     ├── types/          ← extinderi de tipuri (`req.user`)
+    ├── docs/openapi.ts ← specificația OpenAPI, servită la /api/docs
     ├── generated/      ← clientul Prisma generat (nu se urcă în repo)
     ├── app.ts          ← aplicația Express (folosită și de teste)
     └── server.ts       ← punctul de pornire (`listen`)
@@ -83,7 +86,7 @@ backend/
 
 ## Cum se scrie un endpoint
 
-Fiecare modul are: `schemas/<modul>.schemas.ts` (validare) → `routes/<modul>.routes.ts` → `controllers/<modul>.controller.ts` → `services/<modul>.service.ts`. Router-ul se montează în `routes/index.ts`, iar endpoint-urile se documentează în `docs/api/<modul>.md`. Exemple complete: `GET /api/health` și modulul `auth`.
+Fiecare modul are: `schemas/<modul>.schemas.ts` (validare) → `routes/<modul>.routes.ts` → `controllers/<modul>.controller.ts` → `services/<modul>.service.ts`. Router-ul se montează în `routes/index.ts` (lista `apiMounts`), iar endpoint-ul se adaugă în `src/docs/openapi.ts`: parametrii și body-ul se generează din schemele zod, răspunsul se descrie în `components.schemas`. Testul `tests/docs/openapi.test.ts` pică dacă o rută din Express lipsește din documentație (sau invers). Exemple complete: `GET /api/health` și modulul `auth`.
 
 Ce câmpuri ale unui utilizator se trimit e definit o singură dată, în `services/user-selects.ts`: `selfUserSelect` (utilizatorul despre el însuși), `publicUserSelect` (profil public, fără email), `userSummarySelect` (liste).
 

@@ -14,13 +14,21 @@ import { postsRouter } from "./posts.routes.js";
 import { searchRouter } from "./search.routes.js";
 
 // Toate rutele API, montate sub /api în app.ts.
-// Un modul nou se adaugă aici, de ex.: apiRouter.use("/dogs", dogsRouter);
+// Un modul nou se adaugă aici, de ex.: ["/dogs", dogsRouter],
+// și se documentează în src/docs/openapi.ts (testul din tests/docs verifică asta).
+export const apiMounts: ReadonlyArray<readonly [string, Router]> = [
+  ["/health", healthRouter],
+  ["/places", placesRouter],
+  ["/posts", postsRouter],
+  ["/events", eventsRouter],
+  ["/search", searchRouter],
+  ["/dogs", careRouter],
+  ["/breeds", breedsRouter],
+  ["/dogs", dogsRouter],
+  ["/auth", authRouter],
+];
+
 export const apiRouter = Router();
-
-apiRouter.use("/health", healthRouter);
-apiRouter.use("/places", placesRouter);
-
-apiRouter.use("/posts", postsRouter);
 
 apiRouter.use("/events", eventsRouter);
 apiRouter.use("/search", searchRouter);
