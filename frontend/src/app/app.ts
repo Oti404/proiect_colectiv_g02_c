@@ -1,5 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService, DEMO_PASSWORD } from './core/auth/auth.service';
+import { DEMO_ACCOUNTS } from './core/auth/demo-accounts';
 import { DemoAuthService, EventService, MessageService } from './core/services';
 import { DemoStateService } from './core/state/demo-state.service';
 
@@ -10,47 +12,49 @@ import { DemoStateService } from './core/state/demo-state.service';
   templateUrl: './app.html',
 })
 export class App {
-  private readonly auth = inject(DemoAuthService);
+  private readonly auth = inject(AuthService);
+  private readonly demoBridge = inject(DemoAuthService);
   private readonly stateService = inject(DemoStateService);
   private readonly eventService = inject(EventService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
-  readonly currentUser = this.auth.currentUser;
+  readonly currentUser = this.auth.user;
   readonly isAuthenticated = this.auth.isAuthenticated;
-  readonly demoAccounts = this.auth.demoAccounts;
-  readonly allUsers = computed(() => this.stateService.state().users);
   readonly unreadMessagesCount = this.messageService.totalUnreadCount;
   readonly pendingInvitationsCount = this.eventService.pendingInvitationsCount;
 
+  /** Login rapid cu un cont demo (prezentare / testare). Contul curent apare și dacă nu e demo. */
   readonly switcherOptions = computed(() => {
-    const presets = this.demoAccounts();
+    const options = DEMO_ACCOUNTS.map((a) => ({ email: a.email, label: `${a.name} (${a.hint})` }));
     const current = this.currentUser();
-    const presetIds = new Set(presets.map((p) => p.userId));
-    if (current && !presetIds.has(current.id)) {
-      return [
-        ...presets,
-        {
-          userId: current.id,
-          label: `${current.firstName} ${current.lastName} (${current.neighborhood})`,
-          roleHint: 'Registered demo session',
-        },
-      ];
+    if (current && !options.some((o) => o.email === current.email)) {
+      options.push({ email: current.email, label: `${current.firstName} ${current.lastName}` });
     }
-    return presets;
+    return options;
   });
 
   onSwitchAccount(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    if (!select.value) {
+    const email = select.value;
+    if (!email || email === this.currentUser()?.email) {
       return;
     }
-    this.auth.switchDemoAccount(select.value);
+    this.auth.login(email, DEMO_PASSWORD).subscribe({
+      error: () => {
+        // Contul nu mai există sau serverul nu răspunde: revenim la contul curent în selector.
+        select.value = this.currentUser()?.email ?? '';
+      },
+    });
   }
 
+  /** Resetează doar datele demo din browser (modulele încă nemutate pe API). Sesiunea rămâne. */
   onResetDemoData(): void {
-    this.stateService.resetDemoData({ keepSeededSession: this.isAuthenticated() });
-    if (!this.isAuthenticated()) {
+    this.stateService.resetDemoData();
+    const user = this.currentUser();
+    if (user) {
+      this.demoBridge.adoptApiUser(user);
+    } else {
       void this.router.navigate(['/login']);
     }
   }

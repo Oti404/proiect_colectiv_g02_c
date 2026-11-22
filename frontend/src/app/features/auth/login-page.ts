@@ -1,7 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { DemoAuthService } from '../../core/services';
+import { authErrorMessage } from '../../core/auth/auth-messages';
+import { AuthService, DEMO_PASSWORD } from '../../core/auth/auth.service';
+import { DEMO_ACCOUNTS } from '../../core/auth/demo-accounts';
 
 @Component({
   selector: 'app-login-page',
@@ -10,47 +12,55 @@ import { DemoAuthService } from '../../core/services';
 })
 export class LoginPageComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(DemoAuthService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  readonly demoAccounts = this.auth.demoAccounts;
+  /** Query params: pagina la care voia să ajungă utilizatorul și motivul trimiterii la login. */
+  readonly returnUrl = input<string>();
+  readonly reason = input<string>();
+
+  readonly demoAccounts = DEMO_ACCOUNTS;
+  readonly demoPassword = DEMO_PASSWORD;
   readonly errorMessage = signal<string | null>(null);
+  readonly submitting = signal(false);
 
   readonly loginForm = this.fb.nonNullable.group({
-    email: ['ana.pop@demo.dogapp', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required]],
   });
 
-  onEnterDefaultDemo(): void {
-    this.errorMessage.set(null);
-    const res = this.auth.enterDemo();
-    if (res.ok) {
-      void this.router.navigate(['/search']);
-    } else {
-      this.errorMessage.set(res.error ?? 'Could not enter demo.');
-    }
-  }
-
-  onEnterAsAccount(userId: string): void {
-    this.errorMessage.set(null);
-    const res = this.auth.enterDemo(userId);
-    if (res.ok) {
-      void this.router.navigate(['/search']);
-    } else {
-      this.errorMessage.set(res.error ?? 'Could not switch demo account.');
-    }
-  }
-
-  onSubmitEmailLogin(): void {
-    this.errorMessage.set(null);
+  onSubmit(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
-    const res = this.auth.loginWithEmail(this.loginForm.getRawValue().email);
-    if (res.ok) {
-      void this.router.navigate(['/search']);
-    } else {
-      this.errorMessage.set(res.error ?? 'Demo login failed.');
-    }
+    const { email, password } = this.loginForm.getRawValue();
+    this.signIn(email, password);
+  }
+
+  onDemoLogin(email: string): void {
+    this.loginForm.setValue({ email, password: DEMO_PASSWORD });
+    this.signIn(email, DEMO_PASSWORD);
+  }
+
+  private signIn(email: string, password: string): void {
+    this.errorMessage.set(null);
+    this.submitting.set(true);
+    this.auth.login(email, password).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        void this.router.navigateByUrl(this.safeReturnUrl());
+      },
+      error: (err: unknown) => {
+        this.submitting.set(false);
+        this.errorMessage.set(authErrorMessage(err));
+      },
+    });
+  }
+
+  /** Doar rute interne, ca un link `?returnUrl=https://...` să nu poată trimite în afara aplicației. */
+  private safeReturnUrl(): string {
+    const url = this.returnUrl();
+    return url && url.startsWith('/') && !url.startsWith('//') ? url : '/search';
   }
 }
