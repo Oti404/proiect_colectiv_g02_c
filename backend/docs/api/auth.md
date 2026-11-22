@@ -47,14 +47,14 @@ Creează contul și întoarce direct un token (utilizatorul e logat).
 ## `POST /api/auth/login`
 
 ```json
-{ "email": "user1@demo.local", "password": "pass1" }
+{ "email": "ana.pop@demo.dogapp", "password": "pass1" }
 ```
 
 **200**: același format ca la register (`{ data: { token, user } }`).
 
 **Erori:** `400 VALIDATION_ERROR`, `401 INVALID_CREDENTIALS`. Răspunsul e identic pentru parolă greșită și pentru email inexistent, ca să nu se poată afla ce emailuri au cont.
 
-Conturile demo din seed (`user1@demo.local` … `user5@demo.local`) au parola `pass1`.
+Conturile demo din seed (`ana.pop@demo.dogapp`, `mihai.ionescu@demo.dogapp`, `elena.rusu@demo.dogapp`, `andrei.muresan@demo.dogapp`, `ioana.cristea@demo.dogapp`, `radu.moldovan@demo.dogapp`, `mara.popescu@demo.dogapp`) au parola `pass1`.
 
 ## `GET /api/auth/me` 🔒
 

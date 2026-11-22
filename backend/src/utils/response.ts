@@ -39,6 +39,11 @@ export function sendPaginated<T>(res: Response, data: T[], meta: PaginationMeta)
   res.status(200).json({ data, meta } satisfies ApiPaginated<T>);
 }
 
+/** Listă cu metadate proprii, de ex. paginare cu cursor: `{ data: [...], meta: { hasMore } }`. */
+export function sendWithMeta<T, M extends object>(res: Response, data: T[], meta: M): void {
+  res.status(200).json({ data, meta });
+}
+
 export function sendNoContent(res: Response): void {
   res.status(204).end();
 }

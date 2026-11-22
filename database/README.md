@@ -18,7 +18,7 @@ Structura tabelelor e definită în [backend/prisma/schema.prisma](../backend/pr
 ## Schema, migrări și date demo
 - **16 tabele**, după diagrama de clase din [docs/diagrams/class-diagram.svg](../docs/diagrams/class-diagram.svg).
 - **Migrările** sunt în `backend/prisma/migrations/` și se urcă în repo. Prima migrare conține și constrângerile `CHECK` pe care Prisma nu le poate declara în schemă (nota 1-5, un raport trebuie să aibă țintă, un eveniment se termină după ce începe etc.).
-- **Date demo** (`backend/prisma/seed.ts`): 17 rase (inclusiv „Mixed breed"), 5 utilizatori din Cluj și 8 câini. Conturile demo sunt `user1@demo.local` ... `user5@demo.local` (Ana Pop, Mihai Ionescu, Elena Rusu, Andrei Mureșan, Ioana Cristea), toate cu parola `pass1`.
+- **Date demo** (`backend/prisma/seed.ts`): 17 rase (inclusiv „Mixed breed"), 7 utilizatori din Cluj și 12 câini, aceiași ca în datele demo din frontend. Conturile demo au forma `prenume.nume@demo.dogapp` (`ana.pop`, `mihai.ionescu`, `elena.rusu`, `andrei.muresan`, `ioana.cristea`, `radu.moldovan`, `mara.popescu`), toate cu parola `pass1`.
 - **Cu Docker nu trebuie făcut nimic manual:** serviciul `migrate` din `compose.yaml` aplică migrările și rulează seed-ul la fiecare `docker compose up`, înaintea backend-ului. Seed-ul se poate rula de oricâte ori.
 - **Fără Docker pentru backend** (baza rămâne în Docker): din `backend/` rulați `npx prisma migrate dev` și `npx prisma db seed`.
 

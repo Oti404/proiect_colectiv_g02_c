@@ -78,6 +78,29 @@ export async function createDog(
   });
 }
 
+export async function createEvent(
+  organizerId: string,
+  overrides: Partial<{ status: "ACTIVE" | "CANCELLED"; title: string }> = {},
+) {
+  const startsAt = new Date(Date.now() + 24 * 3600 * 1000);
+  return prisma.event.create({
+    data: {
+      organizerId,
+      title: overrides.title ?? "Plimbare",
+      type: "GROUP_WALK",
+      visibility: "PRIVATE",
+      locationText: "Parcul Central",
+      status: overrides.status ?? "ACTIVE",
+      startsAt,
+      endsAt: new Date(startsAt.getTime() + 3600 * 1000),
+    },
+  });
+}
+
+export async function createPost(authorId: string) {
+  return prisma.post.create({ data: { authorId, content: "Salut!" } });
+}
+
 /**
  * `blocker` îl blochează pe `blocked`. Încă nu există rută de block în API,
  * așa că testele scriu direct în tabelul `Block`.
