@@ -633,9 +633,16 @@ const paths = {
     post: op({
       tag: "Events",
       summary: "Acceptă sau refuză o invitație",
-      description: "La `ACCEPTED` trebuie ales cel puțin un câine propriu în `goingDogIds`; câinii aleși devin `GOING`.",
+      description:
+        "La `ACCEPTED` trebuie ales cel puțin un câine propriu în `goingDogIds`; câinii aleși devin `GOING` " +
+        "și răspunsul e evenimentul actualizat. La `DECLINED` invitația se șterge și răspunsul e doar " +
+        "`{ eventId, status: \"DECLINED\" }` (un eveniment privat nu mai e vizibil după refuz).",
       schemas: respondToInvitationSchemas,
-      response: eventResponse("Evenimentul, după răspuns"),
+      response: {
+        status: 200,
+        description: "Evenimentul (la `ACCEPTED`) sau confirmarea refuzului (la `DECLINED`)",
+        schema: dataOf({ oneOf: [ref("Event"), obj({ eventId: uuid, status: enumOf("DECLINED") })] }),
+      },
       errors: [403, 404, 409],
     }),
   },
