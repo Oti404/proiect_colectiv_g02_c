@@ -67,7 +67,7 @@ backend/
 ├── prisma.config.ts    ← configurarea Prisma (conexiunea la baza de date)
 ├── docs/api/           ← note detaliate pe modul (de ex. auth.md)
 ├── tests/              ← teste unit (fără bază de date), aceeași structură ca src/
-│   └── integration/    ← teste pe baza de date reală + helpers (createUser, resetDatabase)
+│   └── integration/    ← teste pe baza de date reală (auth, evenimente / RSVP, block) + helpers (createUser, createDog, block, resetDatabase)
 └── src/
     ├── config/env.ts   ← variabilele de mediu, validate la pornire
     ├── routes/         ← definirea endpoint-urilor (+ validare, auth)

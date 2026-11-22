@@ -48,24 +48,33 @@ export async function createUser(
   return { id: user.id, email, token, authHeader: { Authorization: `Bearer ${token}` } };
 }
 
-// ───────────── Date de test pentru alte tabele ─────────────
-
 let breedCounter = 0;
 
-export async function createDog(ownerId: string, overrides: Partial<{ name: string }> = {}) {
+/** Creează o rasă de test (numele e unic în baza de date). */
+export async function createBreed(): Promise<{ id: string }> {
   breedCounter += 1;
-  const breed = await prisma.breed.create({
-    data: { name: `Breed ${breedCounter}`, size: "MEDIUM", careTips: "-", energyLevel: 3 },
+  return prisma.breed.create({
+    data: { name: `Test breed ${breedCounter}`, size: "MEDIUM", careTips: "Test tips", energyLevel: 3 },
+    select: { id: true },
   });
+}
+
+/** Creează un câine al lui `owner`. Fără `breedId`, creează și o rasă nouă. */
+export async function createDog(
+  owner: TestUser,
+  overrides: Partial<{ name: string; breedId: string }> = {},
+): Promise<{ id: string; name: string }> {
+  const breedId = overrides.breedId ?? (await createBreed()).id;
   return prisma.dog.create({
     data: {
-      ownerId,
-      breedId: breed.id,
+      ownerId: owner.id,
+      breedId,
       name: overrides.name ?? "Rex",
       sex: "MALE",
       size: "MEDIUM",
       temperament: "FRIENDLY",
     },
+    select: { id: true, name: true },
   });
 }
 
@@ -90,4 +99,12 @@ export async function createEvent(
 
 export async function createPost(authorId: string) {
   return prisma.post.create({ data: { authorId, content: "Salut!" } });
+}
+
+/**
+ * `blocker` îl blochează pe `blocked`. Încă nu există rută de block în API,
+ * așa că testele scriu direct în tabelul `Block`.
+ */
+export async function block(blocker: TestUser, blocked: TestUser): Promise<void> {
+  await prisma.block.create({ data: { blockerId: blocker.id, blockedId: blocked.id } });
 }
