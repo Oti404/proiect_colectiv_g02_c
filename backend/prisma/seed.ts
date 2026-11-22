@@ -47,27 +47,45 @@ const breeds = [
     careTips: "Foarte energic, deși mic: are nevoie de multă mișcare și joc. Îi place să sape." },
 ];
 
-// Locații aproximative în Cluj-Napoca (deja rotunjite la 2 zecimale)
+// Conturile demo, aliniate cu frontend-ul (frontend/src/app/core/mock-data/seed-users.ts).
+// Locații aproximative în Cluj-Napoca (deja rotunjite la 2 zecimale).
+// legacyEmail: emailul din versiunea veche a seed-ului; contul existent e redenumit, nu duplicat.
 const users = [
-  { email: "user1@demo.local", firstName: "Ana", lastName: "Pop", bio: "Iubesc plimbările în Parcul Central.", lat: 46.77, lng: 23.59 },
-  { email: "user2@demo.local", firstName: "Mihai", lastName: "Ionescu", bio: "Antrenez câini de sport.", lat: 46.75, lng: 23.55 },
-  { email: "user3@demo.local", firstName: "Elena", lastName: "Rusu", bio: "Caut parteneri de joacă pentru Luna.", lat: 46.77, lng: 23.62 },
-  { email: "user4@demo.local", firstName: "Andrei", lastName: "Mureșan", bio: null, lat: 46.75, lng: 23.58 },
-  { email: "user5@demo.local", firstName: "Ioana", lastName: "Cristea", bio: "Mia e timidă, dar se împrietenește repede.", lat: 46.78, lng: 23.61 },
+  { email: "ana.pop@demo.dogapp", legacyEmail: "user1@demo.local", firstName: "Ana", lastName: "Pop",
+    bio: "Love morning walks around Parcul Central with Rex and Bella.", lat: 46.77, lng: 23.59, consentAt: "2026-10-05T09:00:00.000Z" },
+  { email: "mihai.ionescu@demo.dogapp", legacyEmail: "user2@demo.local", firstName: "Mihai", lastName: "Ionescu",
+    bio: "Dog obedience trainer working on calm leash socializations.", lat: 46.75, lng: 23.55, consentAt: "2026-10-06T11:30:00.000Z" },
+  { email: "elena.rusu@demo.dogapp", legacyEmail: "user3@demo.local", firstName: "Elena", lastName: "Rusu",
+    bio: "Looking for friendly playmates for Luna and Coco in Gheorgheni.", lat: 46.77, lng: 23.62, consentAt: "2026-10-07T14:15:00.000Z" },
+  { email: "andrei.muresan@demo.dogapp", legacyEmail: "user4@demo.local", firstName: "Andrei", lastName: "Mureșan",
+    bio: "Trail runner & husky dad always up for active weekend hikes.", lat: 46.75, lng: 23.58, consentAt: "2026-10-08T16:45:00.000Z" },
+  { email: "ioana.cristea@demo.dogapp", legacyEmail: "user5@demo.local", firstName: "Ioana", lastName: "Cristea",
+    bio: "Mia is shy at first, Toby loves everyone!", lat: 46.78, lng: 23.61, consentAt: "2026-10-09T10:20:00.000Z" },
+  { email: "radu.moldovan@demo.dogapp", legacyEmail: null, firstName: "Radu", lastName: "Moldovan",
+    bio: "Evening walks near Someș in Grigorescu.", lat: 46.77, lng: 23.56, consentAt: "2026-10-10T18:00:00.000Z" },
+  { email: "mara.popescu@demo.dogapp", legacyEmail: null, firstName: "Mara", lastName: "Popescu",
+    bio: "Proud owner of Oscar the Boxer & Pip the Bichon.", lat: 46.75, lng: 23.6, consentAt: "2026-10-12T08:10:00.000Z" },
 ];
 
+const photo = (id: string) => `https://images.unsplash.com/photo-${id}?w=400&h=400&fit=crop&auto=format`;
+
+// Câinii demo, aliniați cu frontend/src/app/core/mock-data/seed-dogs.ts
 const dogs = [
   // Ana are doi câini
-  { owner: "user1@demo.local", name: "Rex", breed: "Labrador Retriever", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2021-03-12" },
-  { owner: "user1@demo.local", name: "Bella", breed: "French Bulldog", sex: Sex.FEMALE, size: DogSize.SMALL, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2022-07-01" },
-  { owner: "user2@demo.local", name: "Max", breed: "German Shepherd", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.REACTIVE, neutered: true, birthDate: "2020-01-20" },
+  { owner: "ana.pop@demo.dogapp", name: "Rex", breed: "Labrador Retriever", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2022-03-12", photoUrl: photo("1587300003388-59208cc962cb") },
+  { owner: "ana.pop@demo.dogapp", name: "Bella", breed: "French Bulldog", sex: Sex.FEMALE, size: DogSize.SMALL, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2024-07-01", photoUrl: photo("1583512603805-3cc6b41f3edb") },
+  { owner: "mihai.ionescu@demo.dogapp", name: "Max", breed: "German Shepherd", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.REACTIVE, neutered: true, birthDate: "2020-01-20", photoUrl: photo("1589941013453-ec89f33b5e95") },
   // Elena are doi câini
-  { owner: "user3@demo.local", name: "Luna", breed: "Golden Retriever", sex: Sex.FEMALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2022-05-05" },
-  { owner: "user3@demo.local", name: "Coco", breed: "Beagle", sex: Sex.FEMALE, size: DogSize.MEDIUM, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2023-09-14" },
-  { owner: "user4@demo.local", name: "Rocky", breed: "Siberian Husky", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2021-11-30" },
-  { owner: "user5@demo.local", name: "Mia", breed: "Chihuahua", sex: Sex.FEMALE, size: DogSize.SMALL, temperament: Temperament.SHY, neutered: true, birthDate: "2019-06-18" },
+  { owner: "elena.rusu@demo.dogapp", name: "Luna", breed: "Golden Retriever", sex: Sex.FEMALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2023-05-05", photoUrl: photo("1552053831-71594a27632d") },
+  { owner: "elena.rusu@demo.dogapp", name: "Coco", breed: "Beagle", sex: Sex.FEMALE, size: DogSize.MEDIUM, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2025-11-14", photoUrl: photo("1505628346881-b72b27e84530") },
+  { owner: "andrei.muresan@demo.dogapp", name: "Rocky", breed: "Siberian Husky", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.PLAYFUL, neutered: false, birthDate: "2021-11-30", photoUrl: photo("1617895153857-82fe0c43621b") },
+  { owner: "ioana.cristea@demo.dogapp", name: "Mia", breed: "Chihuahua", sex: Sex.FEMALE, size: DogSize.SMALL, temperament: Temperament.SHY, neutered: true, birthDate: "2018-06-18", photoUrl: photo("1575425186775-b8de9a427e67") },
   // Câine adoptat, fără dată de naștere cunoscută
-  { owner: "user5@demo.local", name: "Toby", breed: "Mixed breed", sex: Sex.MALE, size: DogSize.MEDIUM, temperament: Temperament.PLAYFUL, neutered: true, birthDate: null },
+  { owner: "ioana.cristea@demo.dogapp", name: "Toby", breed: "Mixed breed", sex: Sex.MALE, size: DogSize.MEDIUM, temperament: Temperament.PLAYFUL, neutered: true, birthDate: null, photoUrl: null },
+  { owner: "radu.moldovan@demo.dogapp", name: "Bruno", breed: "Golden Retriever", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2019-09-10", photoUrl: photo("1518717758536-85ae29035b6d") },
+  { owner: "radu.moldovan@demo.dogapp", name: "Daisy", breed: "Mixed breed", sex: Sex.FEMALE, size: DogSize.MEDIUM, temperament: Temperament.SHY, neutered: false, birthDate: "2026-02-01", photoUrl: null },
+  { owner: "mara.popescu@demo.dogapp", name: "Oscar", breed: "Boxer", sex: Sex.MALE, size: DogSize.LARGE, temperament: Temperament.FRIENDLY, neutered: true, birthDate: "2021-04-22", photoUrl: photo("1543466835-00a7907e9de1") },
+  { owner: "mara.popescu@demo.dogapp", name: "Pip", breed: "Bichon Frise", sex: Sex.FEMALE, size: DogSize.SMALL, temperament: Temperament.PLAYFUL, neutered: true, birthDate: "2023-08-15", photoUrl: photo("1529429617124-95b109e86bb8") },
 ];
 
 async function main() {
@@ -87,8 +105,14 @@ async function main() {
       bio: u.bio,
       approxLatitude: u.lat,
       approxLongitude: u.lng,
-      consentAt: new Date(),
+      consentAt: new Date(u.consentAt),
     };
+    // Baza locală poate avea încă contul cu emailul vechi: îl redenumim, ca să-și păstreze câinii și restul datelor
+    if (u.legacyEmail) {
+      const legacy = await prisma.user.findUnique({ where: { email: u.legacyEmail } });
+      const current = await prisma.user.findUnique({ where: { email: u.email } });
+      if (legacy && !current) await prisma.user.update({ where: { id: legacy.id }, data: { email: u.email } });
+    }
     const user = await prisma.user.upsert({ where: { email: u.email }, update: data, create: { email: u.email, ...data } });
     userIds.set(u.email, user.id);
   }
@@ -103,6 +127,7 @@ async function main() {
       temperament: d.temperament,
       neutered: d.neutered,
       birthDate: d.birthDate ? new Date(d.birthDate) : null,
+      photoUrl: d.photoUrl,
     };
     const existing = await prisma.dog.findFirst({ where: { ownerId, name: d.name } });
     if (existing) await prisma.dog.update({ where: { id: existing.id }, data });
@@ -110,7 +135,7 @@ async function main() {
   }
 
   console.log(`Seed gata: ${breeds.length} rase, ${users.length} utilizatori, ${dogs.length} câini.`);
-  console.log(`Conturi demo: user1@demo.local ... user5@demo.local, parola: ${DEMO_PASSWORD}`);
+  console.log(`Conturi demo: ${users.map((u) => u.email).join(", ")}, parola: ${DEMO_PASSWORD}`);
 }
 
 main()
