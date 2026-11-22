@@ -28,7 +28,8 @@ export const DEMO_PASSWORD = 'pass1';
 /**
  * Sesiunea reală, prin `/api/auth`.
  *
- * Temporar, până se mută toate modulele pe API (INTEGRATION_TASKS.md, secțiunea 9),
+ * Temporar, până se mută toate modulele pe API (pasul „Final” din planul de integrare,
+ * ramura `docs/frontend-integration-tasks`),
  * utilizatorul logat e oglindit și în datele demo (`DemoAuthService.adoptApiUser`),
  * ca paginile care încă folosesc mock-urile să aibă un utilizator curent.
  */
