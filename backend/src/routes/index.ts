@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { eventsRouter } from "./events.routes.js";
 import { careRouter } from "./care.routes.js";
 import { breedsRouter } from "./breeds.routes.js";
 import { dogsRouter } from "./dogs.routes.js";
@@ -11,6 +12,7 @@ import { searchRouter } from "./search.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use("/health", healthRouter);
+apiRouter.use("/events", eventsRouter);
 apiRouter.use("/search", searchRouter);
 apiRouter.use("/dogs", careRouter);
 apiRouter.use("/breeds", breedsRouter);
