@@ -1,7 +1,7 @@
 <section class="stack care-page-wrapper">
   <!-- Care Header & Dog Switcher -->
   <header class="card care-header-card stack">
-    <div class="row header-inner-row" style="justify-content: space-between; align-items: center;">
+    <div class="row header-inner-row" style="justify-content: space-between; align-items: center">
       <div>
         <div class="badge-tag">
           <span class="tag-dot"></span>
@@ -9,7 +9,7 @@
         </div>
         <h1 class="page-title">Dog Care &amp; Health Tracker</h1>
         <p class="muted subtitle">
-          Personalized breed tips, Cluj weather recommendations, vaccination schedules, and weight charts.
+          Personalized breed tips, vaccination schedules, and weight charts.
         </p>
       </div>
       @if (myDogs().length > 0) {
@@ -30,22 +30,27 @@
     </div>
   </header>
 
-  @if (myDogs().length === 0) {
+  @if (myProfileResource.isLoading()) {
+    <section class="card empty-state stack">
+      <p class="muted">Loading your dogs…</p>
+    </section>
+  } @else if (myDogs().length === 0) {
     <section class="card empty-state stack">
       <div class="empty-icon-dot"></div>
-      <h2 style="margin: 0; font-size: 1.35rem;">No Dogs Registered Yet</h2>
+      <h2 style="margin: 0; font-size: 1.35rem">No Dogs Registered Yet</h2>
       <p class="muted">
-        Add one of your dogs in your profile to unlock personalized breed tips, health records, reminders, and weight tracking.
+        Add one of your dogs in your profile to unlock personalized breed tips, health records,
+        reminders, and weight tracking.
       </p>
       <div>
         <a class="btn btn-primary btn-sm" routerLink="/profile">Go to Profile to Add a Dog</a>
       </div>
     </section>
   } @else if (selectedDog(); as dog) {
-    <!-- Daily Breed & Weather Advice Card -->
+    <!-- Daily Breed Advice Card -->
     @if (dailyTip(); as tip) {
       <section class="card daily-tip-card stack">
-        <div class="row tip-header" style="justify-content: space-between; align-items: flex-start;">
+        <div class="row tip-header" style="justify-content: space-between; align-items: flex-start">
           <div>
             <div class="badge-tag">
               <span class="tag-dot"></span>
@@ -53,7 +58,6 @@
             </div>
             <h2 class="tip-title">Daily Care Advice for {{ dog.name }}</h2>
           </div>
-          <span class="badge badge-info weather-badge">{{ tip.weatherLabel }}</span>
         </div>
 
         <div class="row dog-traits-chips">
@@ -67,6 +71,9 @@
             @if (breed.breathingIssues) {
               <span class="badge badge-danger">Breathing Sensitivity</span>
             }
+          } @else {
+            <span class="chip-item">Breed: {{ dog.breed.name }}</span>
+            <span class="chip-item">Size: {{ dog.size }}</span>
           }
           <span class="chip-item">Age: {{ selectedDogAgeLabel() }}</span>
         </div>
@@ -83,7 +90,7 @@
 
         <div class="medical-disclaimer-box">
           <span class="disclaimer-text">
-            <strong>Medical disclaimer:</strong> {{ medicalDisclaimer }}
+            <strong>Medical disclaimer:</strong> {{ tip.disclaimer }}
           </span>
         </div>
       </section>
@@ -93,25 +100,29 @@
     <div class="grid-2 care-middle-grid">
       <!-- Upcoming & Overdue Reminders -->
       <section class="card care-subcard stack">
-        <div class="row" style="gap: 0.5rem; align-items: center;">
+        <div class="row" style="gap: 0.5rem; align-items: center">
           <h2 class="subcard-title">Upcoming &amp; Overdue Reminders</h2>
         </div>
 
-        @if (reminders().length === 0) {
+        @if (remindersResource.isLoading()) {
+          <p class="muted">Loading reminders…</p>
+        } @else if (reminders().length === 0) {
           <p class="muted">No scheduled care due dates for {{ dog.name }}.</p>
         } @else {
-          <ul class="stack reminder-list" style="list-style: none; padding: 0; margin: 0;">
+          <ul class="stack reminder-list" style="list-style: none; padding: 0; margin: 0">
             @for (reminder of reminders(); track reminder.record.id) {
               <li class="reminder-item stack">
-                <div class="row" style="justify-content: space-between; align-items: center;">
+                <div class="row" style="justify-content: space-between; align-items: center">
                   <strong class="reminder-title">{{ reminder.record.title }}</strong>
                   <span [class]="'badge ' + getReminderBadgeClass(reminder.status)">
                     {{ formatReminderStatusLabel(reminder) }}
                   </span>
                 </div>
-                <div class="row muted reminder-meta" style="font-size: 0.84rem;">
+                <div class="row muted reminder-meta" style="font-size: 0.84rem">
                   <span>{{ formatRecordType(reminder.record.type) }}</span>
-                  <span>Due: <strong>{{ reminder.record.nextDueDate }}</strong></span>
+                  <span
+                    >Due: <strong>{{ reminder.record.nextDueDate?.slice(0, 10) }}</strong></span
+                  >
                 </div>
               </li>
             }
@@ -121,8 +132,8 @@
 
       <!-- Weight History SVG Chart -->
       <section class="card care-subcard stack">
-        <div class="row" style="justify-content: space-between; align-items: center;">
-          <div class="row" style="gap: 0.5rem; align-items: center;">
+        <div class="row" style="justify-content: space-between; align-items: center">
+          <div class="row" style="gap: 0.5rem; align-items: center">
             <h2 class="subcard-title">Weight History</h2>
           </div>
           @if (weightChart().latestWeight !== null) {
@@ -130,7 +141,9 @@
           }
         </div>
 
-        @if (weightChart().points.length === 0) {
+        @if (weightHistoryResource.isLoading()) {
+          <p class="muted">Loading weight history…</p>
+        } @else if (weightChart().points.length === 0) {
           <p class="muted">
             No weight records yet for {{ dog.name }}. Add a "Weight" record below to start plotting.
           </p>
@@ -158,8 +171,15 @@
                 />
               }
 
-              @for (pt of weightChart().points; track pt.point.date + '-' + $index) {
-                <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#1e7e51" stroke="#ffffff" stroke-width="2" />
+              @for (pt of weightChart().points; track pt.point.id) {
+                <circle
+                  [attr.cx]="pt.x"
+                  [attr.cy]="pt.y"
+                  r="5"
+                  fill="#1e7e51"
+                  stroke="#ffffff"
+                  stroke-width="2"
+                />
                 <text
                   [attr.x]="pt.x"
                   [attr.y]="pt.y - 10"
@@ -178,25 +198,29 @@
                   font-weight="500"
                   fill="#4e6557"
                 >
-                  {{ pt.point.date }}
+                  {{ pt.point.date.slice(0, 10) }}
                 </text>
               }
             </svg>
           </div>
-          <p class="muted" style="font-size: 0.84rem; text-align: center;">
-            Range: {{ weightChart().minWeight }} kg – {{ weightChart().maxWeight }} kg
-            ({{ weightChart().points.length }} measurement{{ weightChart().points.length === 1 ? '' : 's' }})
+          <p class="muted" style="font-size: 0.84rem; text-align: center">
+            Range: {{ weightChart().minWeight }} kg – {{ weightChart().maxWeight }} kg ({{
+              weightChart().points.length
+            }}
+            measurement{{ weightChart().points.length === 1 ? '' : 's' }})
           </p>
         }
       </section>
     </div>
 
-    <!-- Add Record & Record History Grid -->
+    <!-- Add / Edit Record & Record History Grid -->
     <div class="grid-2 care-bottom-grid">
-      <!-- Add Record Form -->
+      <!-- Add / Edit Record Form -->
       <section class="card care-subcard stack">
-        <div class="row" style="gap: 0.5rem; align-items: center;">
-          <h2 class="subcard-title">Add Health Record for {{ dog.name }}</h2>
+        <div class="row" style="gap: 0.5rem; align-items: center">
+          <h2 class="subcard-title">
+            {{ editingRecordId() ? 'Edit Health Record' : 'Add Health Record for ' + dog.name }}
+          </h2>
         </div>
 
         @if (errorMessage(); as error) {
@@ -206,7 +230,7 @@
           <div class="alert-success">{{ success }}</div>
         }
 
-        <form class="stack" [formGroup]="recordForm" (ngSubmit)="onAddRecord()">
+        <form class="stack" [formGroup]="recordForm" (ngSubmit)="onSubmitRecord()">
           <div class="field">
             <label for="hr-type">Record Category</label>
             <select id="hr-type" formControlName="type">
@@ -239,6 +263,9 @@
             <div class="field">
               <label for="hr-next-due">Next Due Date (optional)</label>
               <input id="hr-next-due" type="date" formControlName="nextDueDate" />
+              @if (nextDueDateError(); as err) {
+                <span class="error-text">{{ err }}</span>
+              }
             </div>
           </div>
 
@@ -253,6 +280,9 @@
                 formControlName="weightKg"
                 placeholder="e.g. 24.5"
               />
+              @if (weightKgError(); as err) {
+                <span class="error-text">{{ err }}</span>
+              }
             </div>
           }
 
@@ -266,18 +296,27 @@
             ></textarea>
           </div>
 
-          <div>
-            <button type="submit" class="btn btn-primary btn-sm">
-              Save Health Record
+          <div class="row" style="gap: 0.5rem">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="submitting()">
+              @if (submitting()) {
+                Saving…
+              } @else {
+                {{ editingRecordId() ? 'Save Changes' : 'Save Health Record' }}
+              }
             </button>
+            @if (editingRecordId()) {
+              <button type="button" class="btn btn-subtle btn-sm" (click)="onCancelEdit()">
+                Cancel
+              </button>
+            }
           </div>
         </form>
       </section>
 
       <!-- Filtered Health Records History -->
       <section class="card care-subcard stack">
-        <div class="row" style="justify-content: space-between; align-items: center;">
-          <div class="row" style="gap: 0.5rem; align-items: center;">
+        <div class="row" style="justify-content: space-between; align-items: center">
+          <div class="row" style="gap: 0.5rem; align-items: center">
             <h2 class="subcard-title">Health History</h2>
           </div>
           <span class="badge badge-info">{{ filteredRecords().length }} records</span>
@@ -287,7 +326,9 @@
           @for (opt of filterOptions; track opt.value) {
             <button
               type="button"
-              [class]="typeFilter() === opt.value ? 'btn btn-primary btn-sm' : 'btn btn-subtle btn-sm'"
+              [class]="
+                typeFilter() === opt.value ? 'btn btn-primary btn-sm' : 'btn btn-subtle btn-sm'
+              "
               (click)="setTypeFilter(opt.value)"
             >
               {{ opt.label }}
@@ -295,49 +336,65 @@
           }
         </div>
 
-        @if (filteredRecords().length === 0) {
+        @if (recordsResource.isLoading()) {
+          <p class="muted">Loading health records…</p>
+        } @else if (filteredRecords().length === 0) {
           <p class="muted">No health records match this filter for {{ dog.name }}.</p>
         } @else {
-          <ul class="stack records-history-list" style="list-style: none; padding: 0; margin: 0;">
+          <ul class="stack records-history-list" style="list-style: none; padding: 0; margin: 0">
             @for (record of filteredRecords(); track record.id) {
               <li class="record-item card stack">
-                <div class="row" style="justify-content: space-between; align-items: center;">
-                  <div class="row" style="gap: 0.5rem; align-items: center;">
+                <div class="row" style="justify-content: space-between; align-items: center">
+                  <div class="row" style="gap: 0.5rem; align-items: center">
                     <span class="badge badge-type">{{ formatRecordType(record.type) }}</span>
                     <strong class="record-entry-title">{{ record.title }}</strong>
                   </div>
 
                   @if (confirmDeleteId() === record.id) {
-                    <div class="row" style="gap: 0.35rem;">
+                    <div class="row" style="gap: 0.35rem">
                       <button
                         type="button"
                         class="btn btn-danger btn-sm"
+                        [disabled]="deletingId() === record.id"
                         (click)="confirmDelete(record.id)"
                       >
-                        Confirm
+                        {{ deletingId() === record.id ? 'Deleting…' : 'Confirm' }}
                       </button>
                       <button type="button" class="btn btn-subtle btn-sm" (click)="cancelDelete()">
                         Cancel
                       </button>
                     </div>
                   } @else {
-                    <button
-                      type="button"
-                      class="btn btn-subtle btn-sm text-danger"
-                      (click)="requestDelete(record.id)"
-                    >
-                      Delete
-                    </button>
+                    <div class="row" style="gap: 0.35rem">
+                      <button
+                        type="button"
+                        class="btn btn-subtle btn-sm"
+                        (click)="onEditRecord(record)"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-subtle btn-sm text-danger"
+                        (click)="requestDelete(record.id)"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   }
                 </div>
 
-                <div class="row muted" style="font-size: 0.84rem; gap: 0.85rem;">
-                  <span>Date: {{ record.date }}</span>
+                <div class="row muted" style="font-size: 0.84rem; gap: 0.85rem">
+                  <span>Date: {{ record.date.slice(0, 10) }}</span>
                   @if (record.nextDueDate) {
-                    <span>Next due: <strong>{{ record.nextDueDate }}</strong></span>
+                    <span
+                      >Next due: <strong>{{ record.nextDueDate.slice(0, 10) }}</strong></span
+                    >
                   }
                   @if (record.weightKg !== null) {
-                    <span>Weight: <strong>{{ record.weightKg }} kg</strong></span>
+                    <span
+                      >Weight: <strong>{{ record.weightKg }} kg</strong></span
+                    >
                   }
                 </div>
 

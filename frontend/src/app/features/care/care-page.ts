@@ -1,29 +1,26 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { of } from 'rxjs';
+import { ApiError } from '../../core/api/api.types';
+import { AuthService } from '../../core/auth/auth.service';
+import { HealthRecordType } from '../../core/models';
 import {
-  Breed,
-  DailyCareTip,
-  Dog,
-  HealthRecord,
-  HealthRecordType,
-  WeightPoint,
-} from '../../core/models';
-import {
+  ApiHealthRecord,
+  ApiReminder,
+  ApiWeightPoint,
   CareService,
-  DemoAuthService,
   DogService,
-  HealthReminder,
-  MEDICAL_DISCLAIMER_TEXT,
   ReminderStatus,
+  UserService,
 } from '../../core/services';
-import { DEMO_REFERENCE_DATE_ISO } from '../../shared/utils/date.util';
 import { formatDogAge } from '../../shared/utils/dog-age.util';
 
 type RecordFilter = HealthRecordType | 'ALL';
 
 interface PlottedWeightPoint {
-  point: WeightPoint;
+  point: ApiWeightPoint;
   x: number;
   y: number;
 }
@@ -36,7 +33,9 @@ interface WeightChartView {
   latestWeight: number | null;
 }
 
-const DEFAULT_RECORD_DATE = DEMO_REFERENCE_DATE_ISO.slice(0, 10);
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 @Component({
   selector: 'app-care-page',
@@ -45,14 +44,13 @@ const DEFAULT_RECORD_DATE = DEMO_REFERENCE_DATE_ISO.slice(0, 10);
 })
 export class CarePageComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(DemoAuthService);
+  private readonly auth = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly dogService = inject(DogService);
   private readonly careService = inject(CareService);
 
   private lastAccountId: string | null = null;
 
-  readonly medicalDisclaimer = MEDICAL_DISCLAIMER_TEXT;
-  readonly recordTypes: HealthRecordType[] = ['VACCINE', 'DEWORMING', 'VET_VISIT', 'WEIGHT'];
   readonly filterOptions: { value: RecordFilter; label: string }[] = [
     { value: 'ALL', label: 'All Records' },
     { value: 'VACCINE', label: 'Vaccines' },
@@ -61,62 +59,80 @@ export class CarePageComponent {
     { value: 'WEIGHT', label: 'Weight' },
   ];
 
-  readonly myDogs = this.dogService.myDogs;
+  readonly myProfileResource = rxResource({
+    params: () => this.auth.user()?.id ?? null,
+    stream: ({ params }) => (params ? this.userService.getPublicProfile(params) : of(null)),
+  });
+  readonly myDogs = computed(() => this.myProfileResource.value()?.dogs ?? []);
+
   readonly selectedDogId = signal<string>('');
   readonly typeFilter = signal<RecordFilter>('ALL');
+  readonly editingRecordId = signal<string | null>(null);
   readonly confirmDeleteId = signal<string | null>(null);
+  readonly submitting = signal(false);
+  readonly deletingId = signal<string | null>(null);
+
   readonly errorMessage = signal<string | null>(null);
+  readonly nextDueDateError = signal<string | null>(null);
+  readonly weightKgError = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
   readonly recordForm = this.fb.nonNullable.group({
     type: ['VACCINE' as HealthRecordType, Validators.required],
     title: ['', [Validators.required, Validators.maxLength(120)]],
-    date: [DEFAULT_RECORD_DATE, Validators.required],
+    date: [todayIsoDate(), Validators.required],
     nextDueDate: [''],
     weightKg: [''],
     notes: [''],
   });
 
-  readonly selectedDog = computed<Dog | null>(() => {
+  readonly selectedDogDetailResource = rxResource({
+    params: () => this.selectedDogId() || null,
+    stream: ({ params }) => (params ? this.dogService.getById(params) : of(null)),
+  });
+
+  readonly selectedDog = computed(() => {
     const id = this.selectedDogId();
     return this.myDogs().find((d) => d.id === id) ?? null;
   });
 
-  readonly selectedBreed = computed<Breed | null>(() => {
-    const dog = this.selectedDog();
-    if (!dog) {
-      return null;
-    }
-    return this.dogService.getBreedById(dog.breedId) ?? null;
-  });
+  readonly selectedBreed = computed(() => this.selectedDogDetailResource.value()?.breed ?? null);
 
   readonly selectedDogAgeLabel = computed<string>(() => {
     const dog = this.selectedDog();
-    return dog ? formatDogAge(dog.birthDate) : '';
+    return dog ? formatDogAge(dog.birthDate, new Date().toISOString()) : '';
   });
 
-  readonly dailyTip = computed<DailyCareTip | null>(() => {
-    const dog = this.selectedDog();
-    const breed = this.selectedBreed();
-    if (!dog || !breed) {
-      return null;
-    }
-    return this.careService.getDailyCareTip(dog, breed);
+  readonly dailyTipResource = rxResource({
+    params: () => this.selectedDogId() || null,
+    stream: ({ params }) => (params ? this.careService.getDailyTip(params) : of(null)),
   });
 
-  readonly reminders = computed<HealthReminder[]>(() => {
-    const dog = this.selectedDog();
-    return dog ? this.careService.getReminders(dog.id) : [];
+  readonly remindersResource = rxResource({
+    params: () => this.selectedDogId() || null,
+    stream: ({ params }) => (params ? this.careService.getReminders(params) : of([])),
   });
 
-  readonly filteredRecords = computed<HealthRecord[]>(() => {
-    const dog = this.selectedDog();
-    return dog ? this.careService.getHealthRecords(dog.id, this.typeFilter()) : [];
+  readonly weightHistoryResource = rxResource({
+    params: () => this.selectedDogId() || null,
+    stream: ({ params }) => (params ? this.careService.getWeightHistory(params) : of([])),
   });
+
+  readonly recordsResource = rxResource({
+    params: () => {
+      const dogId = this.selectedDogId();
+      return dogId ? { dogId, type: this.typeFilter() } : null;
+    },
+    stream: ({ params }) =>
+      params ? this.careService.getHealthRecords(params.dogId, params.type) : of([]),
+  });
+
+  readonly dailyTip = computed(() => this.dailyTipResource.value() ?? null);
+  readonly reminders = computed(() => this.remindersResource.value() ?? []);
+  readonly filteredRecords = computed(() => this.recordsResource.value() ?? []);
 
   readonly weightChart = computed<WeightChartView>(() => {
-    const dog = this.selectedDog();
-    const rawPoints = dog ? this.careService.getWeightHistory(dog.id) : [];
+    const rawPoints = this.weightHistoryResource.value() ?? [];
     if (rawPoints.length === 0) {
       return {
         points: [],
@@ -170,12 +186,12 @@ export class CarePageComponent {
 
   constructor() {
     effect(() => {
-      const accountId = this.auth.currentUser()?.id ?? null;
+      const accountId = this.auth.user()?.id ?? null;
       if (accountId !== this.lastAccountId) {
         this.lastAccountId = accountId;
         this.confirmDeleteId.set(null);
-        this.errorMessage.set(null);
-        this.successMessage.set(null);
+        this.editingRecordId.set(null);
+        this.clearMessages();
       }
 
       const dogs = this.myDogs();
@@ -189,6 +205,7 @@ export class CarePageComponent {
       if (!dogs.some((d) => d.id === currentId)) {
         this.selectedDogId.set(dogs[0]!.id);
         this.confirmDeleteId.set(null);
+        this.editingRecordId.set(null);
       }
     });
   }
@@ -198,8 +215,8 @@ export class CarePageComponent {
     if (select) {
       this.selectedDogId.set(select.value);
       this.confirmDeleteId.set(null);
-      this.errorMessage.set(null);
-      this.successMessage.set(null);
+      this.editingRecordId.set(null);
+      this.clearMessages();
     }
   }
 
@@ -207,9 +224,28 @@ export class CarePageComponent {
     this.typeFilter.set(filter);
   }
 
-  onAddRecord(): void {
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
+  onEditRecord(record: ApiHealthRecord): void {
+    this.clearMessages();
+    this.confirmDeleteId.set(null);
+    this.editingRecordId.set(record.id);
+    this.recordForm.reset({
+      type: record.type,
+      title: record.title,
+      date: record.date.slice(0, 10),
+      nextDueDate: record.nextDueDate ? record.nextDueDate.slice(0, 10) : '',
+      weightKg: record.weightKg !== null ? String(record.weightKg) : '',
+      notes: record.notes ?? '',
+    });
+  }
+
+  onCancelEdit(): void {
+    this.editingRecordId.set(null);
+    this.clearMessages();
+    this.resetRecordForm('VACCINE');
+  }
+
+  onSubmitRecord(): void {
+    this.clearMessages();
 
     const dog = this.selectedDog();
     if (!dog) {
@@ -227,35 +263,55 @@ export class CarePageComponent {
     const parsedWeight =
       raw.type === 'WEIGHT' && raw.weightKg.trim() !== '' ? Number(raw.weightKg) : null;
 
-    const result = this.careService.addHealthRecord(dog.id, {
+    const payload = {
       type: raw.type,
-      title: raw.title,
+      title: raw.title.trim(),
       date: raw.date,
       nextDueDate: raw.nextDueDate.trim() || null,
       weightKg: parsedWeight,
       notes: raw.notes.trim() || null,
-    });
+    };
 
-    if (!result.ok) {
-      this.errorMessage.set(result.error ?? 'Could not save health record.');
-      return;
-    }
+    const editId = this.editingRecordId();
+    this.submitting.set(true);
 
-    this.successMessage.set(`Added "${result.data?.title ?? 'health record'}" for ${dog.name}.`);
-    this.recordForm.reset({
-      type: raw.type,
-      title: '',
-      date: DEFAULT_RECORD_DATE,
-      nextDueDate: '',
-      weightKg: '',
-      notes: '',
+    const request$ = editId
+      ? this.careService.updateHealthRecord(dog.id, editId, payload)
+      : this.careService.createHealthRecord(dog.id, payload);
+
+    request$.subscribe({
+      next: (saved) => {
+        this.submitting.set(false);
+        this.editingRecordId.set(null);
+        this.successMessage.set(
+          editId
+            ? `Updated "${saved.title}" for ${dog.name}.`
+            : `Added "${saved.title}" for ${dog.name}.`,
+        );
+        this.resetRecordForm(raw.type);
+        this.reloadDogCareData();
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        const apiErr = ApiError.from(err);
+        this.nextDueDateError.set(apiErr.fieldError('nextDueDate') ?? null);
+        this.weightKgError.set(apiErr.fieldError('weightKg') ?? null);
+        if (apiErr.code === 'VALIDATION_ERROR') {
+          this.errorMessage.set(
+            apiErr.fieldErrors[0]?.message ?? 'Please check the highlighted fields.',
+          );
+        } else if (apiErr.code === 'NETWORK_ERROR') {
+          this.errorMessage.set('Cannot reach the server. Check your connection.');
+        } else {
+          this.errorMessage.set('Could not save health record.');
+        }
+      },
     });
   }
 
   requestDelete(recordId: string): void {
     this.confirmDeleteId.set(recordId);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
+    this.clearMessages();
   }
 
   cancelDelete(): void {
@@ -263,13 +319,28 @@ export class CarePageComponent {
   }
 
   confirmDelete(recordId: string): void {
-    const result = this.careService.removeHealthRecord(recordId);
-    this.confirmDeleteId.set(null);
-    if (!result.ok) {
-      this.errorMessage.set(result.error ?? 'Could not delete health record.');
+    const dog = this.selectedDog();
+    if (!dog) {
       return;
     }
-    this.successMessage.set('Health record deleted.');
+    this.deletingId.set(recordId);
+    this.careService.deleteHealthRecord(dog.id, recordId).subscribe({
+      next: () => {
+        this.deletingId.set(null);
+        this.confirmDeleteId.set(null);
+        if (this.editingRecordId() === recordId) {
+          this.editingRecordId.set(null);
+          this.resetRecordForm('VACCINE');
+        }
+        this.successMessage.set('Health record deleted.');
+        this.reloadDogCareData();
+      },
+      error: () => {
+        this.deletingId.set(null);
+        this.confirmDeleteId.set(null);
+        this.errorMessage.set('Could not delete health record.');
+      },
+    });
   }
 
   formatRecordType(type: HealthRecordType): string {
@@ -296,7 +367,7 @@ export class CarePageComponent {
     }
   }
 
-  formatReminderStatusLabel(reminder: HealthReminder): string {
+  formatReminderStatusLabel(reminder: ApiReminder): string {
     if (reminder.status === 'OVERDUE') {
       const days = Math.abs(reminder.daysDelta);
       return `Overdue by ${days} day${days === 1 ? '' : 's'}`;
@@ -308,5 +379,29 @@ export class CarePageComponent {
       return `Due soon (in ${reminder.daysDelta} day${reminder.daysDelta === 1 ? '' : 's'})`;
     }
     return `Scheduled in ${reminder.daysDelta} days`;
+  }
+
+  private reloadDogCareData(): void {
+    this.recordsResource.reload();
+    this.remindersResource.reload();
+    this.weightHistoryResource.reload();
+  }
+
+  private clearMessages(): void {
+    this.errorMessage.set(null);
+    this.nextDueDateError.set(null);
+    this.weightKgError.set(null);
+    this.successMessage.set(null);
+  }
+
+  private resetRecordForm(type: HealthRecordType): void {
+    this.recordForm.reset({
+      type,
+      title: '',
+      date: todayIsoDate(),
+      nextDueDate: '',
+      weightKg: '',
+      notes: '',
+    });
   }
 }

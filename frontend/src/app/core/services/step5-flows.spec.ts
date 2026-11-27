@@ -1,13 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { routes } from '../../app.routes';
-import { CarePageComponent } from '../../features/care/care-page';
-import { DogDetailPageComponent } from '../../features/dogs/dog-detail-page';
 import { EventDetailPageComponent } from '../../features/events/event-detail-page';
 import { EventFormPageComponent } from '../../features/events/event-form-page';
 import { FeedPageComponent } from '../../features/feed/feed-page';
 import { PlacesMapPageComponent } from '../../features/places/places-map-page';
-import { UserProfilePageComponent } from '../../features/profile/user-profile-page';
 import {
   DEMO_REFERENCE_DATE_ISO,
   offsetDemoDateIso,
@@ -17,12 +14,10 @@ import {
 import { SEED_EVENTS } from '../mock-data/seed-events';
 import { SEED_HEALTH_RECORDS } from '../mock-data/seed-care';
 import { DEMO_STORAGE_KEY, DemoStateService } from '../state/demo-state.service';
-import { CareService } from './care.service';
 import { DemoAuthService } from './demo-auth.service';
 import { DogService } from './dog.service';
 import { EventService } from './event.service';
 import { FeedService } from './feed.service';
-import { DEFAULT_SEARCH_FILTERS, SearchService } from './search.service';
 
 describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
   beforeEach(() => {
@@ -38,24 +33,14 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
 
   it('completes the full 19-step end-to-end demo walkthrough with reload persistence and reset', async () => {
     const auth = TestBed.inject(DemoAuthService);
-    const searchService = TestBed.inject(SearchService);
     const eventService = TestBed.inject(EventService);
     const dogService = TestBed.inject(DogService);
-    const careService = TestBed.inject(CareService);
     const feedService = TestBed.inject(FeedService);
 
     // 1. Enter Demo as Ana Pop
     expect(auth.enterDemo('user-ana').ok).toBe(true);
 
-    // 2-3. Search for Luna
-    const searchResults = searchService.searchDogs({
-      ...DEFAULT_SEARCH_FILTERS,
-      query: 'Luna',
-      maxDistanceKm: 20,
-    });
-    const luna = searchResults.find((r) => r.dog.id === 'dog-luna');
-    expect(luna).toBeDefined();
-    expect(luna?.owner.id).toBe('user-elena');
+    // 2-3. Căutarea e pe API acum (testată în search.service.spec.ts)
 
     // 4-5. Invite Elena to a private playdate & create event
     const createdEvent = eventService.createEvent({
@@ -102,17 +87,7 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     const miloId = addDogRes.data!.id;
     expect(dogService.updateDog(miloId, { name: 'Milo Jr.' }).data?.name).toBe('Milo Jr.');
 
-    const addWeightRes = careService.addHealthRecord(miloId, {
-      type: 'WEIGHT',
-      title: 'Initial checkup',
-      date: offsetDemoDateOnly(0),
-      nextDueDate: offsetDemoDateOnly(10),
-      weightKg: 11.2,
-      notes: null,
-    });
-    expect(addWeightRes.ok).toBe(true);
-    expect(careService.getWeightHistory(miloId).length).toBe(1);
-    expect(careService.getReminders(miloId)[0]?.status).toBe('DUE_SOON');
+    // 14-15. Îngrijirea (Care) e pe API acum (testată în care.service.spec.ts)
 
     // 16-17. Create social post, switch to Elena, like & comment
     const postRes = feedService.createPost({
@@ -132,13 +107,11 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
     const reloadedFeed = TestBed.inject(FeedService);
     const reloadedEvents = TestBed.inject(EventService);
-    const reloadedCare = TestBed.inject(CareService);
 
     const savedPost = reloadedFeed.getFeedPosts().find((p) => p.post.id === postId);
     expect(savedPost?.likeCount).toBe(1);
     expect(savedPost?.comments.length).toBe(1);
     expect(reloadedEvents.getEventById(playdateId)?.goingDogsCount).toBe(2);
-    expect(reloadedCare.getWeightHistory(miloId)[0]?.weightKg).toBe(11.2);
 
     // 19. Reset Demo Data restores original seed dataset cleanly
     TestBed.inject(DemoStateService).resetDemoData();
@@ -212,26 +185,13 @@ describe('STEP 5 Final Stabilization, Map & Full E2E Demo Audit', () => {
     ).toBe(false);
 
     // Phase 5: Invalid route IDs render safe fallback UI without throwing
-    const dogFixture = TestBed.createComponent(DogDetailPageComponent);
-    dogFixture.componentRef.setInput('id', 'invalid-dog-id');
-    await dogFixture.whenStable();
-    expect((dogFixture.nativeElement as HTMLElement).textContent).toContain('Dog Not Found');
-
-    const userFixture = TestBed.createComponent(UserProfilePageComponent);
-    userFixture.componentRef.setInput('id', 'invalid-user-id');
-    await userFixture.whenStable();
-    expect((userFixture.nativeElement as HTMLElement).textContent).toContain('User Not Found');
-
+    // (DogDetail, UserProfile, Care sunt pe API acum)
     const eventFixture = TestBed.createComponent(EventDetailPageComponent);
     eventFixture.componentRef.setInput('id', 'invalid-event-id');
     await eventFixture.whenStable();
     expect((eventFixture.nativeElement as HTMLElement).textContent).toContain(
       'Event Not Found or Private',
     );
-
-    const careFixture = TestBed.createComponent(CarePageComponent);
-    await careFixture.whenStable();
-    expect(careFixture.componentInstance.selectedDog()?.id).toBe('dog-rex');
 
     const feedFixture = TestBed.createComponent(FeedPageComponent);
     await feedFixture.whenStable();
