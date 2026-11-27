@@ -7,7 +7,6 @@ import { EventsPageComponent } from '../../features/events/events-page';
 import { DemoStateService } from '../state/demo-state.service';
 import { DemoAuthService } from './demo-auth.service';
 import { EventService } from './event.service';
-import { DEFAULT_SEARCH_FILTERS, SearchService } from './search.service';
 
 describe('STEP 3 Events & Messaging Flows', () => {
   beforeEach(() => {
@@ -23,16 +22,10 @@ describe('STEP 3 Events & Messaging Flows', () => {
 
   it('executes full mandatory E2E demo scenario and survives browser refresh', async () => {
     const auth = TestBed.inject(DemoAuthService);
-    const searchService = TestBed.inject(SearchService);
     const eventService = TestBed.inject(EventService);
 
-    // 1. Ana enters demo and searches Luna
+    // 1. Ana enters demo (căutarea e pe API acum, testată în search.service.spec.ts)
     auth.enterDemo('user-ana');
-    const lunaMatch = searchService
-      .searchDogs({ ...DEFAULT_SEARCH_FILTERS, query: 'Luna', maxDistanceKm: 20 })
-      .find((r) => r.dog.id === 'dog-luna');
-    expect(lunaMatch).toBeDefined();
-    expect(lunaMatch?.owner.id).toBe('user-elena');
 
     // 2. Ana creates a private playdate inviting Elena (with Rex going, capacity 2)
     const createRes = eventService.createEvent({

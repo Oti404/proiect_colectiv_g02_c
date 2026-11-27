@@ -1,21 +1,30 @@
-@if (details(); as info) {
+@if (dogResource.isLoading()) {
+  <section class="card empty-state stack">
+    <p class="muted">Loading dog profile…</p>
+  </section>
+} @else if (details(); as info) {
   <section class="stack dog-detail-wrapper">
     <div class="navigation-row">
-      <a class="btn btn-sm btn-subtle" routerLink="/search">
-        &larr; Back to Search
-      </a>
+      <a class="btn btn-sm btn-subtle" routerLink="/search"> &larr; Back to Search </a>
     </div>
 
     <!-- Main Dog Profile Hero Card -->
     <div class="card detail-hero-card stack">
-      <div class="hero-top row" style="justify-content: space-between; align-items: flex-start;">
-        <div class="row dog-title-group" style="gap: 1rem;">
+      <div class="hero-top row" style="justify-content: space-between; align-items: flex-start">
+        <div class="row dog-title-group" style="gap: 1rem">
           <div class="dog-detail-avatar">
             @if (info.dog.photoUrl) {
               <img
                 [src]="info.dog.photoUrl"
                 [alt]="info.dog.name"
-                style="width:4rem;height:4rem;object-fit:cover;border-radius:12px;display:block;flex-shrink:0;"
+                style="
+                  width: 4rem;
+                  height: 4rem;
+                  object-fit: cover;
+                  border-radius: 12px;
+                  display: block;
+                  flex-shrink: 0;
+                "
               />
             } @else {
               <span class="avatar-initial">{{ info.dog.name.charAt(0) }}</span>
@@ -44,13 +53,13 @@
           {{ info.dog.neutered ? 'Neutered / Spayed' : 'Not neutered' }}
         </span>
         @if (info.dog.birthDate) {
-          <span class="chip-item">Born: {{ info.dog.birthDate }}</span>
+          <span class="chip-item">Born: {{ info.dog.birthDate.slice(0, 10) }}</span>
         } @else {
           <span class="chip-item">Birth date unknown</span>
         }
         @if (info.distanceKm !== null) {
           <span class="chip-item chip-distance">
-            ~{{ info.distanceKm }} km away ({{ info.owner.neighborhood }})
+            ~{{ info.distanceKm }} km away ({{ info.ownerNeighborhood }})
           </span>
         }
       </div>
@@ -58,43 +67,40 @@
       <!-- Main Action Buttons -->
       <div class="row action-buttons-row">
         @if (isOwnDog()) {
-          <a class="btn btn-primary" routerLink="/profile">
-            Edit in My Profile
-          </a>
-          <a class="btn btn-subtle" routerLink="/care">
-            View Health &amp; Care
-          </a>
+          <a class="btn btn-primary" routerLink="/profile"> Edit in My Profile </a>
+          <a class="btn btn-subtle" routerLink="/care"> View Health &amp; Care </a>
         } @else {
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="onSendMessage(info.owner.id)"
-          >
+          <button type="button" class="btn btn-primary" (click)="onSendMessage(info.owner.id)">
             Send Message
           </button>
-          <button
-            type="button"
-            class="btn btn-accent"
-            (click)="onInviteToPlaydate(info.owner.id)"
-          >
+          <button type="button" class="btn btn-accent" (click)="onInviteToPlaydate(info.owner.id)">
             Invite to Playdate
           </button>
 
           @if (confirmingBlock()) {
-            <div class="row block-confirmation" style="gap: 0.4rem;">
+            <div class="row block-confirmation" style="gap: 0.4rem">
               <button
                 type="button"
                 class="btn btn-danger btn-sm"
+                [disabled]="blocking()"
                 (click)="onConfirmBlock(info.owner.id)"
               >
-                Confirm Block Owner
+                {{ blocking() ? 'Blocking…' : 'Confirm Block Owner' }}
               </button>
-              <button type="button" class="btn btn-sm btn-subtle" (click)="confirmingBlock.set(false)">
+              <button
+                type="button"
+                class="btn btn-sm btn-subtle"
+                (click)="confirmingBlock.set(false)"
+              >
                 Cancel
               </button>
             </div>
           } @else {
-            <button type="button" class="btn btn-sm btn-subtle block-btn" (click)="confirmingBlock.set(true)">
+            <button
+              type="button"
+              class="btn btn-sm btn-subtle block-btn"
+              (click)="confirmingBlock.set(true)"
+            >
               Block Owner
             </button>
           }
@@ -104,7 +110,7 @@
 
     <!-- Breed & Care Information Card -->
     <div class="card breed-info-card stack">
-      <div class="section-title-row row" style="gap: 0.5rem; align-items: center;">
+      <div class="section-title-row row" style="gap: 0.5rem; align-items: center">
         <h2 class="section-title">Breed Characteristics: {{ info.breed.name }}</h2>
       </div>
 
@@ -127,18 +133,20 @@
 
     <!-- Owner Information Card -->
     <div class="card owner-info-card stack">
-      <div class="section-title-row row" style="gap: 0.5rem; align-items: center;">
+      <div class="section-title-row row" style="gap: 0.5rem; align-items: center">
         <h2 class="section-title">About the Owner</h2>
       </div>
 
-      <div class="row owner-card-inner" style="justify-content: space-between; align-items: center;">
-        <div class="row owner-identity-block" style="gap: 0.85rem;">
+      <div class="row owner-card-inner" style="justify-content: space-between; align-items: center">
+        <div class="row owner-identity-block" style="gap: 0.85rem">
           <div class="owner-avatar">
             {{ info.owner.firstName.charAt(0) }}{{ info.owner.lastName.charAt(0) }}
           </div>
           <div>
-            <strong class="owner-full-name">{{ info.owner.firstName }} {{ info.owner.lastName }}</strong>
-            <div class="muted owner-location">Cluj-Napoca · {{ info.owner.neighborhood }}</div>
+            <strong class="owner-full-name"
+              >{{ info.owner.firstName }} {{ info.owner.lastName }}</strong
+            >
+            <div class="muted owner-location">Cluj-Napoca · {{ info.ownerNeighborhood }}</div>
             @if (info.owner.bio) {
               <p class="owner-bio">{{ info.owner.bio }}</p>
             }
@@ -154,7 +162,7 @@
 } @else {
   <section class="card empty-state stack">
     <div class="empty-icon-dot"></div>
-    <h1 style="margin: 0; font-size: 1.4rem;">Dog Not Found</h1>
+    <h1 style="margin: 0; font-size: 1.4rem">Dog Not Found</h1>
     <p class="muted">This dog does not exist or belongs to a user you have blocked.</p>
     <div>
       <a class="btn btn-primary btn-sm" routerLink="/search">Back to Search</a>

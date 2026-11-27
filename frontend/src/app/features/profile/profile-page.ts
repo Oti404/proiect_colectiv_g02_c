@@ -1,9 +1,35 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { Dog, DogSize, Sex, Temperament } from '../../core/models';
-import { DemoAuthService, DogService, UserService } from '../../core/services';
+import { Router, RouterLink } from '@angular/router';
+import { of } from 'rxjs';
+import { ApiError, ApiModel } from '../../core/api/api.types';
+import { BreedApiService } from '../../core/api/breed-api.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { NEIGHBORHOODS, coordinatesOf, nearestNeighborhood } from '../../core/auth/neighborhoods';
+import { DogSize, Sex, Temperament } from '../../core/models';
+import { DogService, UserService } from '../../core/services';
 import { formatDogAge } from '../../shared/utils/dog-age.util';
+
+type PublicDog = ApiModel<'PublicProfile'>['dogs'][number];
+
+function profileErrorMessage(err: unknown, fallback: string): string {
+  const apiErr = ApiError.from(err);
+  switch (apiErr.code) {
+    case 'INVALID_PASSWORD':
+      return 'Incorrect password. Please try again.';
+    case 'VALIDATION_ERROR':
+      return apiErr.fieldErrors[0]?.message ?? fallback;
+    case 'NOT_FOUND':
+      return 'Requested record was not found.';
+    case 'FORBIDDEN':
+      return 'You do not have permission to perform this action.';
+    case 'NETWORK_ERROR':
+      return 'Cannot reach the server. Check your connection.';
+    default:
+      return fallback;
+  }
+}
 
 @Component({
   selector: 'app-profile-page',
@@ -12,26 +38,55 @@ import { formatDogAge } from '../../shared/utils/dog-age.util';
 })
 export class ProfilePageComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(DemoAuthService);
+  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly dogService = inject(DogService);
+  private readonly breedApi = inject(BreedApiService);
 
   private lastSyncedUserId: string | null = null;
 
-  readonly currentUser = this.auth.currentUser;
-  readonly neighborhoods = this.auth.neighborhoods;
-  readonly myDogs = this.dogService.myDogs;
-  readonly breeds = this.dogService.breeds;
-  readonly blockedUsers = computed(() => this.userService.getBlockedUsers());
+  readonly currentUser = this.auth.user;
+  readonly currentNeighborhood = computed(() => {
+    const user = this.currentUser();
+    return user ? nearestNeighborhood(user.approxLatitude, user.approxLongitude) : 'Centru';
+  });
+  readonly neighborhoods = NEIGHBORHOODS;
 
+  readonly breedsResource = rxResource({
+    stream: () => this.breedApi.list(),
+  });
+  readonly breeds = computed(() => this.breedsResource.value() ?? []);
+
+  readonly myProfileResource = rxResource({
+    params: () => this.currentUser()?.id ?? null,
+    stream: ({ params }) => (params ? this.userService.getPublicProfile(params) : of(null)),
+  });
+  readonly myDogs = computed(() => this.myProfileResource.value()?.dogs ?? []);
+
+  readonly blocksResource = rxResource({
+    params: () => this.currentUser()?.id ?? null,
+    stream: ({ params }) => (params ? this.userService.listBlocks() : of([])),
+  });
+  readonly blockedUsers = computed(() => this.blocksResource.value() ?? []);
+
+  readonly savingProfile = signal(false);
   readonly profileMessage = signal<string | null>(null);
   readonly profileError = signal<string | null>(null);
 
   readonly showDogForm = signal(false);
   readonly editingDogId = signal<string | null>(null);
   readonly confirmingDeleteDogId = signal<string | null>(null);
+  readonly savingDog = signal(false);
+  readonly deletingDogId = signal<string | null>(null);
   readonly dogFormError = signal<string | null>(null);
   readonly dogActionMessage = signal<string | null>(null);
+
+  readonly unblockingUserId = signal<string | null>(null);
+
+  readonly showDeleteAccount = signal(false);
+  readonly deletingAccount = signal(false);
+  readonly deleteAccountError = signal<string | null>(null);
 
   readonly profileForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],
@@ -42,12 +97,17 @@ export class ProfilePageComponent {
 
   readonly dogForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
-    breedId: ['breed-mixed', [Validators.required]],
+    breedId: ['', [Validators.required]],
     sex: ['MALE' as Sex, [Validators.required]],
     size: ['MEDIUM' as DogSize, [Validators.required]],
     temperament: ['FRIENDLY' as Temperament, [Validators.required]],
     birthDate: [''],
     neutered: [false],
+    photoUrl: [''],
+  });
+
+  readonly deleteAccountForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required]],
   });
 
   constructor() {
@@ -65,7 +125,7 @@ export class ProfilePageComponent {
         {
           firstName: user.firstName,
           lastName: user.lastName,
-          neighborhood: user.neighborhood,
+          neighborhood: nearestNeighborhood(user.approxLatitude, user.approxLongitude),
           bio: user.bio ?? '',
         },
         { emitEvent: false },
@@ -78,16 +138,14 @@ export class ProfilePageComponent {
         this.profileMessage.set(null);
         this.profileError.set(null);
         this.dogActionMessage.set(null);
+        this.showDeleteAccount.set(false);
+        this.deleteAccountError.set(null);
       }
     });
   }
 
-  getBreedName(breedId: string): string {
-    return this.dogService.getBreedById(breedId)?.name ?? 'Unknown breed';
-  }
-
   getDogAge(birthDate: string | null): string {
-    return formatDogAge(birthDate);
+    return formatDogAge(birthDate, new Date().toISOString());
   }
 
   onSaveProfile(): void {
@@ -97,18 +155,30 @@ export class ProfilePageComponent {
       this.profileForm.markAllAsTouched();
       return;
     }
+
     const raw = this.profileForm.getRawValue();
-    const res = this.userService.updateCurrentUser({
-      firstName: raw.firstName,
-      lastName: raw.lastName,
-      neighborhood: raw.neighborhood,
-      bio: raw.bio.trim() ? raw.bio.trim() : null,
-    });
-    if (res.ok) {
-      this.profileMessage.set('Profile updated in demo state.');
-    } else {
-      this.profileError.set(res.error ?? 'Could not update profile.');
-    }
+    const coords = coordinatesOf(raw.neighborhood);
+
+    this.savingProfile.set(true);
+    this.userService
+      .updateMe({
+        firstName: raw.firstName.trim(),
+        lastName: raw.lastName.trim(),
+        bio: raw.bio.trim() ? raw.bio.trim() : null,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.savingProfile.set(false);
+          this.auth.syncUser(updated);
+          this.profileMessage.set('Profile updated.');
+        },
+        error: (err) => {
+          this.savingProfile.set(false);
+          this.profileError.set(profileErrorMessage(err, 'Could not update profile.'));
+        },
+      });
   }
 
   onOpenAddDog(): void {
@@ -118,29 +188,31 @@ export class ProfilePageComponent {
     this.confirmingDeleteDogId.set(null);
     this.dogForm.reset({
       name: '',
-      breedId: this.breeds()[0]?.id ?? 'breed-mixed',
+      breedId: this.breeds()[0]?.id ?? '',
       sex: 'MALE',
       size: 'MEDIUM',
       temperament: 'FRIENDLY',
       birthDate: '',
       neutered: false,
+      photoUrl: '',
     });
     this.showDogForm.set(true);
   }
 
-  onOpenEditDog(dog: Dog): void {
+  onOpenEditDog(dog: PublicDog): void {
     this.dogFormError.set(null);
     this.dogActionMessage.set(null);
     this.confirmingDeleteDogId.set(null);
     this.editingDogId.set(dog.id);
     this.dogForm.reset({
       name: dog.name,
-      breedId: dog.breedId,
+      breedId: dog.breed.id,
       sex: dog.sex,
       size: dog.size,
       temperament: dog.temperament,
-      birthDate: dog.birthDate ?? '',
+      birthDate: dog.birthDate ? dog.birthDate.slice(0, 10) : '',
       neutered: dog.neutered,
+      photoUrl: dog.photoUrl ?? '',
     });
     this.showDogForm.set(true);
   }
@@ -160,30 +232,42 @@ export class ProfilePageComponent {
 
     const raw = this.dogForm.getRawValue();
     const payload = {
-      name: raw.name,
+      name: raw.name.trim(),
       breedId: raw.breedId,
       sex: raw.sex,
       size: raw.size,
       temperament: raw.temperament,
       birthDate: raw.birthDate.trim() ? raw.birthDate.trim() : null,
       neutered: raw.neutered,
-      photoUrl: null,
+      photoUrl: raw.photoUrl.trim() ? raw.photoUrl.trim() : null,
     };
 
     const editId = this.editingDogId();
-    const res = editId
-      ? this.dogService.updateDog(editId, payload)
-      : this.dogService.addDog(payload);
+    this.savingDog.set(true);
 
-    if (res.ok) {
-      this.showDogForm.set(false);
-      this.editingDogId.set(null);
-      this.dogActionMessage.set(
-        editId ? 'Dog updated across the app.' : 'New dog added and available in Events & Care.',
-      );
-    } else {
-      this.dogFormError.set(res.error ?? 'Could not save dog.');
-    }
+    const request$ = editId
+      ? this.dogService.update(editId, payload)
+      : this.dogService.create(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.savingDog.set(false);
+        this.showDogForm.set(false);
+        this.editingDogId.set(null);
+        this.dogActionMessage.set(editId ? 'Dog updated.' : 'New dog added.');
+        this.myProfileResource.reload();
+      },
+      error: (err) => {
+        this.savingDog.set(false);
+        const apiErr = ApiError.from(err);
+        const fieldMsg =
+          apiErr.fieldError('name') ??
+          apiErr.fieldError('breedId') ??
+          apiErr.fieldError('birthDate') ??
+          apiErr.fieldError('photoUrl');
+        this.dogFormError.set(fieldMsg ?? profileErrorMessage(err, 'Could not save dog.'));
+      },
+    });
   }
 
   onRequestDeleteDog(dogId: string): void {
@@ -195,14 +279,60 @@ export class ProfilePageComponent {
   }
 
   onConfirmDeleteDog(dogId: string): void {
-    const res = this.dogService.removeDog(dogId);
-    this.confirmingDeleteDogId.set(null);
-    if (res.ok) {
-      this.dogActionMessage.set('Dog removed from demo state.');
-    }
+    this.deletingDogId.set(dogId);
+    this.dogService.delete(dogId).subscribe({
+      next: () => {
+        this.deletingDogId.set(null);
+        this.confirmingDeleteDogId.set(null);
+        this.dogActionMessage.set('Dog removed.');
+        this.myProfileResource.reload();
+      },
+      error: (err) => {
+        this.deletingDogId.set(null);
+        this.confirmingDeleteDogId.set(null);
+        this.dogFormError.set(profileErrorMessage(err, 'Could not remove dog.'));
+      },
+    });
   }
 
   onUnblockUser(userId: string): void {
-    this.userService.unblockUser(userId);
+    this.unblockingUserId.set(userId);
+    this.userService.unblock(userId).subscribe({
+      next: () => {
+        this.unblockingUserId.set(null);
+        this.blocksResource.reload();
+      },
+      error: () => {
+        this.unblockingUserId.set(null);
+      },
+    });
+  }
+
+  onToggleDeleteAccount(open: boolean): void {
+    this.showDeleteAccount.set(open);
+    this.deleteAccountError.set(null);
+    this.deleteAccountForm.reset({ password: '' });
+  }
+
+  onConfirmDeleteAccount(): void {
+    this.deleteAccountError.set(null);
+    if (this.deleteAccountForm.invalid) {
+      this.deleteAccountForm.markAllAsTouched();
+      return;
+    }
+
+    const { password } = this.deleteAccountForm.getRawValue();
+    this.deletingAccount.set(true);
+    this.userService.deleteMe(password).subscribe({
+      next: () => {
+        this.deletingAccount.set(false);
+        this.auth.logout();
+        void this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.deletingAccount.set(false);
+        this.deleteAccountError.set(profileErrorMessage(err, 'Could not delete account.'));
+      },
+    });
   }
 }

@@ -1,16 +1,65 @@
 import { Injectable, computed, inject } from '@angular/core';
-import { ActionResult, Breed, Dog, DogDraft, DogWithDetails } from '../models';
+import { Observable } from 'rxjs';
+import { ApiService } from '../api/api.service';
+import { ApiModel } from '../api/api.types';
+import {
+  ActionResult,
+  Breed,
+  Dog,
+  DogDraft,
+  DogSize,
+  DogWithDetails,
+  Sex,
+  Temperament,
+} from '../models';
 import { DemoStateService } from '../state/demo-state.service';
 import { calculateApproxDistanceKm } from '../../shared/utils/distance.util';
 import { formatDogAge } from '../../shared/utils/dog-age.util';
 import { DemoAuthService } from './demo-auth.service';
 import { UserService } from './user.service';
 
+export type ApiDogWithBreed = ApiModel<'DogWithBreed'>;
+export type ApiDogDetail = ApiModel<'DogDetail'>;
+
+export interface ApiDogDraft {
+  breedId: string;
+  name: string;
+  birthDate?: string | null;
+  sex: Sex;
+  size: DogSize;
+  temperament: Temperament;
+  neutered?: boolean;
+  photoUrl?: string | null;
+}
+
+export type ApiDogPatch = Partial<ApiDogDraft>;
+
 @Injectable({ providedIn: 'root' })
 export class DogService {
+  private readonly api = inject(ApiService);
   private readonly store = inject(DemoStateService);
   private readonly auth = inject(DemoAuthService);
   private readonly userService = inject(UserService);
+
+  // --- API methods ---
+
+  getById(dogId: string): Observable<ApiDogDetail> {
+    return this.api.get<ApiDogDetail>(`/dogs/${dogId}`);
+  }
+
+  create(draft: ApiDogDraft): Observable<ApiDogWithBreed> {
+    return this.api.post<ApiDogWithBreed>('/dogs', draft);
+  }
+
+  update(dogId: string, patch: ApiDogPatch): Observable<ApiDogWithBreed> {
+    return this.api.patch<ApiDogWithBreed>(`/dogs/${dogId}`, patch);
+  }
+
+  delete(dogId: string): Observable<void> {
+    return this.api.delete<void>(`/dogs/${dogId}`);
+  }
+
+  // --- Temporary demo methods (used by modules not yet migrated to API) ---
 
   readonly breeds = computed<Breed[]>(() => this.store.state().breeds);
 

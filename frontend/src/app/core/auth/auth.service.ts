@@ -94,6 +94,16 @@ export class AuthService {
     this.endSession();
   }
 
+  /** Actualizează utilizatorul logat (ex. după `PATCH /users/me`), inclusiv numele din header. */
+  syncUser(user: AuthUser): void {
+    this.startSession(user);
+  }
+
+  /** Reîncarcă profilul utilizatorului logat din `/api/auth/me`. */
+  refreshUser(): Observable<AuthUser> {
+    return this.api.get<AuthUser>('/auth/me').pipe(tap((user) => this.startSession(user)));
+  }
+
   private startSession(user: AuthUser): void {
     this.currentUser.set(user);
     this.currentStatus.set('authenticated');
